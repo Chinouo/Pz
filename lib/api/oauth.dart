@@ -6,7 +6,6 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/adapter.dart';
 import "package:dio/dio.dart";
 import 'package:all_in_one/util/api_util.dart';
-import 'package:dio_http_cache/dio_http_cache.dart';
 
 // ignore: non_constant_identifier_names
 class OAuthClient {
@@ -40,6 +39,7 @@ class OAuthClient {
         options: Options(contentType: Headers.formUrlEncodedContentType));
   }
 
+  /// 非初次登录，带着refreshToken去刷新token
   Future<Response> postRefreshAuthToken({required String refreshToken}) {
     return httpClient.post("/auth/token", data: {
       "client_id": CLIENT_ID,

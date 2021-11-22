@@ -34,6 +34,7 @@ class _DbTemplateState extends State<DbTemplate> {
           Text(Atoken ?? "not set!"),
           MaterialButton(
             onPressed: () async {
+              /*
               Map token = await dbHelper.getStoredToken();
               setState(() {
                 Rtoken = token["refresh_tokesn"];
@@ -41,6 +42,7 @@ class _DbTemplateState extends State<DbTemplate> {
               });
 
               Future.error("My Error");
+              */
             },
             child: Text("Update"),
           )

@@ -33,7 +33,7 @@ class _LoginTemplateState extends State<LoginTemplate> {
 
   PageRouteBuilder routePageBuilder() {
     return PageRouteBuilder(
-        pageBuilder: (_, __, ___) => LoginPage(),
+        pageBuilder: (_, __, ___) => LoginWebView(),
         transitionsBuilder: (_, animation, __, child) {
           var tween = Tween(begin: Offset(0.0, 1.0), end: Offset.zero);
           var ani =
@@ -46,8 +46,8 @@ class _LoginTemplateState extends State<LoginTemplate> {
   }
 }
 
-class LoginPage extends StatelessWidget {
-  const LoginPage({Key? key}) : super(key: key);
+class LoginWebView extends StatelessWidget {
+  const LoginWebView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

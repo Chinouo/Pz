@@ -1,0 +1,88 @@
+import 'dart:io';
+
+import 'package:all_in_one/api/oauth.dart';
+import 'package:dio/adapter.dart';
+import 'package:flutter/material.dart';
+
+import 'package:all_in_one/constant/constant.dart';
+import 'package:dio/dio.dart';
+
+import 'package:all_in_one/util/api_util.dart';
+
+class ApiClient {
+  late Dio httpClient;
+  final String hashSalt =
+      "28c1fdd170a5204386cb1313c7077b34f83e4aaf4aa829ce78c231e05b0bae2c";
+  static String BASE_API_URL_HOST = 'app-api.pixiv.net';
+  static String BASE_IMAGE_HOST = "i.pximg.net";
+  static String Accept_Language = "zh-CN";
+
+  ApiClient() {
+    final String time = Util.getIsoDate();
+
+    httpClient = Dio()
+      ..options.baseUrl = "https://210.140.131.199"
+      ..options.headers = {
+        "X-Client-Time": time,
+        "X-Client-Hash": Util.getHash(time + hashSalt),
+        "User-Agent": "PixivAndroidApp/5.0.155 (Android 10.0; Pixel C)",
+        HttpHeaders.acceptLanguageHeader: Accept_Language,
+        "App-OS": "Android",
+        "App-OS-Version": "Android 10.0",
+        "App-Version": "5.0.166",
+        "Host": BASE_API_URL_HOST
+      }
+      ..interceptors.add(InterceptorsWrapper(onRequest:
+          (RequestOptions options, RequestInterceptorHandler handler) async {
+        String result = "Bearer " + await Constant.accessToken!;
+        options.headers["Authorization"] = result;
+        return handler.next(options);
+      }, onError: (DioError err, handler) async {
+        // 返回400 一般是accessToken过期了
+        if (err.response?.statusCode == 400) {
+          Response response = await OAuthClient()
+              .postRefreshAuthToken(refreshToken: Constant.refreshToken!);
+          String? s1 = response.data["refresh_token"];
+          String? s2 = response.data["access_token"];
+          if (s1 != null && s2 != null) {
+            await Constant.storedToken(refreshToken: s1, accessToken: s2);
+            debugPrint("Store two new Token");
+          }
+        }
+        debugPrint(err.toString());
+        int i = 0;
+      }));
+
+    (httpClient.httpClientAdapter as DefaultHttpClientAdapter)
+        .onHttpClientCreate = (client) {
+      HttpClient httpClient = HttpClient();
+      httpClient.badCertificateCallback =
+          (X509Certificate cert, String host, int port) {
+        return true;
+      };
+      return httpClient;
+    };
+  }
+
+  //I
+  Future<Response> getIllustRanking(String mode, String? date,
+      {bool force = false}) async {
+    return httpClient.get(
+      "/v1/illust/ranking?filter=for_android",
+      queryParameters: {
+        "mode": mode,
+        "date": date,
+      },
+    );
+  }
+
+  Future<Response> getNovelRanking(String mode, String date) async {
+    return httpClient.get("/v1/novel/ranking?filter=for_android",
+        queryParameters: {"mode": mode, "date": date});
+  }
+
+  Future<Response> getMangaRanking(String mode, String date) async {
+    return httpClient.get("/v1/manga/ranking?filter=for_android",
+        queryParameters: {"mode": mode, "date": date});
+  }
+}

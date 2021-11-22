@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:all_in_one/api/oauth.dart';
+import 'package:all_in_one/db/db_helper.dart';
 import 'package:all_in_one/util/log_utils.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -10,10 +11,19 @@ import 'package:all_in_one/util/api_util.dart';
 import 'package:all_in_one/util/crypto_plugin.dart';
 
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'constant/constant.dart';
 import 'widgets/scaffold.dart';
 
 void main() {
   runZonedGuarded<void>(() async {
+    //初始化常量
+
+    //
+    WidgetsFlutterBinding.ensureInitialized();
+
+    await DBHelper.initDBHelper();
+    await Constant.initStoredToken();
+
     runApp(const MyApp());
   },
       (Object e, StackTrace s) => LogUitls.e(

@@ -1,5 +1,8 @@
 import 'dart:ui';
 
+import 'package:all_in_one/constant/constant.dart';
+import 'package:all_in_one/page/login_page.dart';
+import 'package:all_in_one/page/pageview_demo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -8,6 +11,7 @@ import 'package:all_in_one/theme/dark.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
+import 'custom_appbar.dart';
 import 'lazy_indexed_stack.dart';
 
 import 'title_roll.dart';
@@ -58,20 +62,33 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _currentIndex = 0;
+  late int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    if (Constant.refreshToken == null) {
+      // 没有token
+      _currentIndex = 0; //登录页
+    } else {
+      _currentIndex = 1; //主页
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    debugPrint(MediaQuery.of(context).toString());
+    //debugPrint(MediaQuery.of(context).toString());
 
     return Scaffold(
-        backgroundColor: Color(0xF7F9ED).withOpacity(1.0),
+        backgroundColor: Color(0xFFFFFF).withOpacity(1.0),
         body: Stack(children: [
           LazyIndexedStack(
             index: _currentIndex,
             children: [
-              LoginTemplate(),
-              DbTemplate(),
+              LoginPage(),
+              SliverContent(),
+              PageViewDemo(),
+              PageViewDemo()
             ],
           ),
           Positioned(bottom: 0, width: 375.w, child: _buildTabBar())
@@ -81,23 +98,21 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget _buildTabBar() {
     return ClipRect(
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+        filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
         child: AnimatedContainer(
           duration: Duration(seconds: 1),
-          color: Color(0xDBEA8D).withOpacity(0.15),
+          color: Color(0xF2F2F7).withOpacity(0.8),
           height: 56.h + 16.h,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               MaterialButton(
                 onPressed: () {
-                  debugDumpRenderTree();
-
                   setState(() {
                     _currentIndex = 0;
                   });
                 },
-                child: Text("Home"),
+                child: Text("Label1"),
               ),
               MaterialButton(
                 onPressed: () {
@@ -105,7 +120,23 @@ class _MyHomePageState extends State<MyHomePage> {
                     _currentIndex = 1;
                   });
                 },
-                child: Text("Search"),
+                child: Text("Label2"),
+              ),
+              MaterialButton(
+                onPressed: () {
+                  setState(() {
+                    _currentIndex = 2;
+                  });
+                },
+                child: Text("Label3"),
+              ),
+              MaterialButton(
+                onPressed: () {
+                  setState(() {
+                    _currentIndex = 3;
+                  });
+                },
+                child: Text("Label4"),
               )
             ],
           ),
@@ -113,136 +144,4 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
-}
-
-class SliverContent extends StatefulWidget {
-  const SliverContent({Key? key}) : super(key: key);
-
-  @override
-  _SliverContentState createState() => _SliverContentState();
-}
-
-class _SliverContentState extends State<SliverContent>
-    with SingleTickerProviderStateMixin {
-  late ScrollController _controller;
-  late AnimationController _animationController;
-  late Animation<double> _opacity;
-
-  late double barOpacity;
-
-  @override
-  void initState() {
-    super.initState();
-    barOpacity = 0.15;
-    _controller = ScrollController();
-    _animationController =
-        AnimationController(duration: Duration(seconds: 1), vsync: this);
-
-    _opacity =
-        Tween<double>(begin: 0.0, end: 1.0).animate(_animationController);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomScrollView(
-      controller: _controller,
-      slivers: [
-        _builderAppBar(),
-        _buildSecondaryBar(),
-        _buildSecondaryBar(),
-        _buildSecondaryBar(),
-        _buildListView()
-      ],
-    );
-  }
-
-  Widget _buildSecondaryBar() {
-    return SliverToBoxAdapter(
-      child: DailyContainer(),
-    );
-  }
-
-  Widget _builderAppBar() {
-    final double padding = 24.h;
-    return SliverPersistentHeader(
-        pinned: true,
-        delegate: PersistentHeaderBuilder(
-            minExtent: 100,
-            maxExtent: 100,
-            builder: (_, offset) {
-              if (offset < 50) {
-                barOpacity = 0.15;
-              } else {
-                barOpacity = 0.0;
-              }
-
-              if (offset < 100) {
-                _animationController.reverse();
-              } else {
-                _animationController.forward();
-              }
-
-              return ClipRect(
-                child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                    child: AnimatedContainer(
-                        color: Color(0xDBEA8D).withOpacity(barOpacity),
-                        duration: Duration(seconds: 1),
-                        child: FadeTransition(
-                            opacity: _opacity,
-                            child: Padding(
-                              padding: EdgeInsets.only(top: padding),
-                              child: Center(child: Text("$offset")),
-                            )))),
-              );
-            }));
-  }
-
-  Widget _buildListView() {
-    return SliverList(delegate: SliverChildBuilderDelegate((_, index) {
-      return Container(
-        color: Colors.primaries[index % 18],
-        height: 168,
-        child: Center(
-          child: Text("$index"),
-        ),
-      );
-    }));
-  }
-}
-
-//自定义顶部AppBar
-class PersistentHeaderBuilder extends SliverPersistentHeaderDelegate {
-  final double _minExtent;
-  final double _maxExtent;
-  final Widget Function(BuildContext context, double offset) _builder;
-
-  @override
-  Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return _builder(context, shrinkOffset);
-  }
-
-  @override
-  double get maxExtent => _maxExtent;
-
-  @override
-  double get minExtent => _minExtent;
-
-  Widget Function(BuildContext context, double offset) get builder => _builder;
-
-  @override
-  bool shouldRebuild(covariant PersistentHeaderBuilder oldDelegate) {
-    return oldDelegate.maxExtent != maxExtent ||
-        oldDelegate.minExtent != minExtent ||
-        oldDelegate.builder != builder;
-  }
-
-  PersistentHeaderBuilder(
-      {required double minExtent,
-      required double maxExtent,
-      required Widget Function(BuildContext context, double offset) builder})
-      : _maxExtent = maxExtent,
-        _minExtent = minExtent,
-        _builder = builder;
 }
