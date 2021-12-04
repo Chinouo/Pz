@@ -3,12 +3,13 @@ import 'dart:ui';
 import 'package:all_in_one/constant/constant.dart';
 import 'package:all_in_one/page/login_page.dart';
 import 'package:all_in_one/page/pageview_demo.dart';
+import 'package:all_in_one/screen_fit/media_query_wrap.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:all_in_one/theme/dark.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'package:provider/provider.dart';
 
 import 'custom_appbar.dart';
@@ -39,17 +40,21 @@ class _MyAppState extends State<MyApp> {
           SystemUiOverlayStyle(statusBarColor: Colors.transparent));
     }
 
-    return ScreenUtilInit(
-      designSize: Size(375, 812),
-      builder: () => MaterialApp(
-        locale: const Locale.fromSubtags(
-            languageCode: 'zh', scriptCode: 'Hant'), //更改此项  来修改语言
-        title: 'Localizations Sample App',
-        theme: ThemeData(brightness: Brightness.light),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: const MyHomePage(),
-      ),
+    return MaterialApp(
+      builder: (context, widget) {
+        return MediaQueryWrapper(
+          builder: (BuildContext context) {
+            return widget!;
+          },
+        );
+      },
+      locale: const Locale.fromSubtags(
+          languageCode: 'zh', scriptCode: 'Hant'), //更改此项  来修改语言
+      title: 'Localizations Sample App',
+      theme: ThemeData(brightness: Brightness.light),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: const MyHomePage(),
     );
   }
 }
@@ -91,7 +96,7 @@ class _MyHomePageState extends State<MyHomePage> {
               PageViewDemo()
             ],
           ),
-          Positioned(bottom: 0, width: 375.w, child: _buildTabBar())
+          Positioned(bottom: 0, width: 375, child: _buildTabBar())
         ]));
   }
 
@@ -102,7 +107,7 @@ class _MyHomePageState extends State<MyHomePage> {
         child: AnimatedContainer(
           duration: Duration(seconds: 1),
           color: Color(0xF2F2F7).withOpacity(0.8),
-          height: 56.h + 16.h,
+          height: 56 + 16,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -134,6 +139,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 onPressed: () {
                   setState(() {
                     _currentIndex = 3;
+                    debugPrint(MediaQuery.of(context).toString());
                   });
                 },
                 child: Text("Label4"),

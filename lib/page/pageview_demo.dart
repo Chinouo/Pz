@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:all_in_one/widgets/useless/custom_pageview/custom_pageview.dart';
 
@@ -38,12 +37,12 @@ class Header extends StatelessWidget {
 
   Padding _buildHeader() {
     return Padding(
-      padding: EdgeInsets.all(8.0.w),
+      padding: EdgeInsets.all(8.0),
       child: Column(
         children: [
           Divider(
             color: Colors.grey,
-            height: 0.5.w,
+            height: 0.5,
           ),
           Row(
             children: [Text("Content"), Spacer(), Text("See all")],
@@ -55,21 +54,21 @@ class Header extends StatelessWidget {
 
   Widget _buildRankingList() {
     return SizedBox(
-      height: 225.w,
+      height: 225,
       child: CustomScrollView(
         physics: BouncingScrollPhysics(),
         scrollDirection: Axis.horizontal,
         slivers: [
           SliverPadding(
-            padding: EdgeInsets.symmetric(horizontal: 31.w),
+            padding: EdgeInsets.symmetric(horizontal: 31),
             sliver: SliverGrid(
                 delegate: SliverChildBuilderDelegate((_, index) {
                   return _buildImgContent();
                 }, childCount: 7),
                 gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                    mainAxisExtent: 180.w,
-                    mainAxisSpacing: 17.w,
-                    maxCrossAxisExtent: 225.w)),
+                    mainAxisExtent: 180,
+                    mainAxisSpacing: 17,
+                    maxCrossAxisExtent: 225)),
           ),
         ],
       ),
@@ -80,20 +79,20 @@ class Header extends StatelessWidget {
     return Column(
       children: [
         SizedBox(
-            width: 180.w,
-            height: 180.w,
+            width: 180,
+            height: 180,
             child: Stack(
               children: [
                 //Image
                 Container(
-                  width: 180.w,
-                  height: 180.w,
+                  width: 180,
+                  height: 180,
                   child: ColoredBox(color: Colors.blue),
                 ),
                 Positioned(
-                  left: 8.w,
+                  left: 8,
                   child: ConstrainedBox(
-                      constraints: BoxConstraints.loose(Size(180.w, 24.w)),
+                      constraints: BoxConstraints.loose(Size(180, 24)),
                       child: ListTile(
                         leading: Icon(
                           Icons.favorite,
@@ -102,7 +101,7 @@ class Header extends StatelessWidget {
                         ),
                         trailing: Icon(
                           Icons.youtube_searched_for_outlined,
-                          size: 24.w,
+                          size: 24,
                         ),
                       )),
                   // child: Row(
