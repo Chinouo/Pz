@@ -8,48 +8,8 @@ import "package:dio/dio.dart";
 import 'package:all_in_one/util/api_util.dart';
 
 // ignore: non_constant_identifier_names
+// 除了验证 一般情况下不在内存中
 class OAuthClient {
-  final String hashSalt =
-      "28c1fdd170a5204386cb1313c7077b34f83e4aaf4aa829ce78c231e05b0bae2c";
-
-  static const BASE_OAUTH_URL_HOST = "oauth.secure.pixiv.net";
-
-  final String CLIENT_ID = "MOBrBDS8blbauoSck0ZfDbtuzpyT";
-  final String CLIENT_SECRET = "lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj";
-  final String REFRESH_CLIENT_ID = "KzEZED7aC0vird8jWyHM38mXjNTY";
-  final String REFRESH_CLIENT_SECRET =
-      "W9JZoJe00qPvJsiyCGT3CCtC6ZUtdpKpzMbNlUGP";
-
-  final String LOGIN_URL = "https://app-api.pixiv.net/web/v1/login";
-
-  late Dio httpClient;
-
-  Future<Response> code2Token(String code, String code_verifier) {
-    return httpClient.post("/auth/token",
-        data: {
-          "code": code,
-          "redirect_uri":
-              "https://app-api.pixiv.net/web/v1/users/auth/pixiv/callback",
-          "grant_type": "authorization_code",
-          "include_policy": true,
-          "client_id": CLIENT_ID,
-          "code_verifier": code_verifier,
-          "client_secret": CLIENT_SECRET
-        },
-        options: Options(contentType: Headers.formUrlEncodedContentType));
-  }
-
-  /// 非初次登录，带着refreshToken去刷新token
-  Future<Response> postRefreshAuthToken({required String refreshToken}) {
-    return httpClient.post("/auth/token", data: {
-      "client_id": CLIENT_ID,
-      "client_secret": CLIENT_SECRET,
-      "grant_type": "refresh_token",
-      "refresh_token": refreshToken,
-      "include_policy": true
-    });
-  }
-
   OAuthClient() {
     String time = Util.getIsoDate();
     httpClient = Dio()
@@ -91,5 +51,47 @@ class OAuthClient {
     }
 
     initA(time);
+  }
+
+  final String hashSalt =
+      "28c1fdd170a5204386cb1313c7077b34f83e4aaf4aa829ce78c231e05b0bae2c";
+
+  final String BASE_OAUTH_URL_HOST = "oauth.secure.pixiv.net";
+
+  final String CLIENT_ID = "MOBrBDS8blbauoSck0ZfDbtuzpyT";
+  final String CLIENT_SECRET = "lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj";
+  final String REFRESH_CLIENT_ID = "KzEZED7aC0vird8jWyHM38mXjNTY";
+  final String REFRESH_CLIENT_SECRET =
+      "W9JZoJe00qPvJsiyCGT3CCtC6ZUtdpKpzMbNlUGP";
+
+  final String LOGIN_URL = "https://app-api.pixiv.net/web/v1/login";
+
+  late Dio httpClient;
+
+  // 初次登录 Webview 登陆后 带着code 和  code_verifier 去验证得到 token
+  Future<Response> code2Token(String code, String code_verifier) {
+    return httpClient.post("/auth/token",
+        data: {
+          "code": code,
+          "redirect_uri":
+              "https://app-api.pixiv.net/web/v1/users/auth/pixiv/callback",
+          "grant_type": "authorization_code",
+          "include_policy": true,
+          "client_id": CLIENT_ID,
+          "code_verifier": code_verifier,
+          "client_secret": CLIENT_SECRET
+        },
+        options: Options(contentType: Headers.formUrlEncodedContentType));
+  }
+
+  /// 非初次登录，带着refreshToken去刷新token
+  Future<Response> postRefreshAuthToken({required String refreshToken}) {
+    return httpClient.post("/auth/token", data: {
+      "client_id": CLIENT_ID,
+      "client_secret": CLIENT_SECRET,
+      "grant_type": "refresh_token",
+      "refresh_token": refreshToken,
+      "include_policy": true
+    });
   }
 }

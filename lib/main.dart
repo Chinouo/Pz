@@ -1,34 +1,23 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:all_in_one/api/oauth.dart';
-import 'package:all_in_one/db/db_helper.dart';
 import 'package:all_in_one/screen_fit/custom_binding.dart';
 import 'package:all_in_one/screen_fit/screen_fit_util.dart';
 import 'package:all_in_one/util/log_utils.dart';
-import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 
-import 'package:all_in_one/util/api_util.dart';
-import 'package:all_in_one/util/crypto_plugin.dart';
-
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-
-import 'constant/constant.dart';
 import 'widgets/scaffold.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
-import 'dart:ui' show window;
-
-//import 'package:all_in_one/screen_fit/widget_binding.dart';
+import 'package:all_in_one/constant/hive_boxes.dart';
 
 void main() {
   runZonedGuarded<void>(() async {
     //初始化常量
     ScreenFitUtil().initConfig(baseWidth: 375);
     ScreenFitWidgetsFlutterBinding.ensureInitialized();
-    debugPrint(ScreenFitUtil.instance.baseScreenWidth.toString());
-    await DBHelper.initDBHelper();
-    await Constant.initStoredToken();
+
+    await Hive.initFlutter();
+    await HiveBoxes.openBoxes();
 
     runScreenFitApp(const MyApp());
   },

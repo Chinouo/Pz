@@ -1,6 +1,7 @@
 import 'dart:ui';
 
-import 'package:all_in_one/constant/constant.dart';
+import 'package:all_in_one/models/models.dart';
+import 'package:all_in_one/page/login_info_page_demo.dart';
 import 'package:all_in_one/page/login_page.dart';
 import 'package:all_in_one/page/pageview_demo.dart';
 import 'package:all_in_one/screen_fit/media_query_wrap.dart';
@@ -8,19 +9,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:all_in_one/theme/dark.dart';
 
-import 'package:provider/provider.dart';
+import 'package:hive/hive.dart';
 
 import 'custom_appbar.dart';
 import 'lazy_indexed_stack.dart';
 
-import 'title_roll.dart';
-
-import 'package:sqflite/sqflite.dart';
-
-import 'package:all_in_one/page/data_template.dart';
-import 'package:all_in_one/page/login_template.dart';
+import 'package:all_in_one/constant/hive_boxes.dart';
 
 class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -68,11 +63,12 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   late int _currentIndex = 0;
-
+  late Box<Account> accountBox;
   @override
   void initState() {
     super.initState();
-    if (Constant.refreshToken == null) {
+    accountBox = HiveBoxes.accountBox;
+    if (accountBox.get("refresh_token") == null) {
       // 没有token
       _currentIndex = 0; //登录页
     } else {
@@ -92,7 +88,7 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               LoginPage(),
               SliverContent(),
-              PageViewDemo(),
+              ShowAccountPage(),
               PageViewDemo()
             ],
           ),

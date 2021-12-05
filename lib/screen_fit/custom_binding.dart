@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
-import 'dart:ui' as ui show PointerDataPacket, window;
+import 'dart:ui' as ui show PointerDataPacket;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
@@ -54,8 +54,6 @@ class ScreenFitWidgetsFlutterBinding extends BindingBase
   final Queue<PointerEvent> _pendingPointerEvents = Queue<PointerEvent>();
 
   void _handlePointerDataPacket(ui.PointerDataPacket packet) {
-    // We convert pointer data to logical pixels so that e.g. the touch slop can be
-    // defined in a device-independent manner.
     _pendingPointerEvents.addAll(PointerEventConverter.expand(
         packet.data, ScreenFitUtil.instance.devicePixelRatio!));
     if (!locked) _flushPointerEventQueue();

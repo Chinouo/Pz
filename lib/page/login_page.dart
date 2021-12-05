@@ -1,11 +1,13 @@
 import 'package:all_in_one/api/oauth.dart';
 import 'package:all_in_one/constant/constant.dart';
-import 'package:all_in_one/db/db_helper.dart';
+import 'package:all_in_one/constant/hive_boxes.dart';
+
 import 'package:all_in_one/util/api_util.dart';
 import 'package:all_in_one/util/crypto_plugin.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:all_in_one/models/models.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -35,7 +37,7 @@ class _LoginPageState extends State<LoginPage> {
               top: 500,
               child: MaterialButton(
                 onPressed: () {
-                  debugPrint(Constant.refreshToken.toString());
+                  // debugPrint(Constant.refreshToken.toString());
                 },
                 child: Text("DO "),
               ))
@@ -73,12 +75,12 @@ class _LoginWebViewState extends State<LoginWebView> {
   @override
   void initState() {
     super.initState();
-    Constant.loginInfo.codeVer = CryptoPlugin.getCodeVer();
-    codeVer = Constant.loginInfo.codeVer!;
-
-    Constant.loginInfo.codeChallenge =
-        CryptoPlugin.getCodeChallenge(Constant.loginInfo.codeVer!);
-    codeChanllenge = Constant.loginInfo.codeChallenge!;
+    codeVer = CryptoPlugin.getCodeVer();
+    // codeVer = Constant.loginInfo.codeVer!;
+    codeChanllenge = CryptoPlugin.getCodeChallenge(codeVer);
+    //Constant.loginInfo.codeChallenge =
+    //   CryptoPlugin.getCodeChallenge(Constant.loginInfo.codeVer!);
+    // codeChanllenge = Constant.loginInfo.codeChallenge!;
   }
 
   @override
@@ -121,11 +123,16 @@ class _LoginWebViewState extends State<LoginWebView> {
             OAuthClient oac = OAuthClient();
             String code = uri.queryParameters["code"]!;
             Response response = await oac.code2Token(code, codeVer);
-
+            debugPrint(
+                "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   response.runtimeType :" +
+                    response.runtimeType.toString());
             String? s1 = response.data["refresh_token"];
             String? s2 = response.data["access_token"];
             if (s1 != null && s2 != null) {
-              await Constant.storedToken(refreshToken: s1, accessToken: s2);
+              HiveBoxes.accountBox
+                  .put("myAccount", Account.fromJson(response.data));
+
+              //  await Constant.storedToken(refreshToken: s1, accessToken: s2);
               Navigator.pop(context, "login success");
             }
 

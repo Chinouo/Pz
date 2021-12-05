@@ -5,7 +5,7 @@ import 'package:all_in_one/widgets/title_roll.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 
 //自定义顶部AppBar
 class PersistentHeaderBuilder extends SliverPersistentHeaderDelegate {
@@ -130,7 +130,7 @@ class _SliverContentState extends State<SliverContent>
   }
 
   Widget _builderAppBar() {
-    final double padding = 24.h;
+    final double padding = 24;
     return SliverPersistentHeader(
         pinned: true,
         delegate: PersistentHeaderBuilder(
