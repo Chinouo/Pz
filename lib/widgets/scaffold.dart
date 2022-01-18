@@ -1,9 +1,13 @@
 import 'dart:ui';
 
+import 'package:all_in_one/models/illust/illust.dart';
 import 'package:all_in_one/models/models.dart';
 import 'package:all_in_one/page/login_info_page_demo.dart';
 import 'package:all_in_one/page/login_page.dart';
+import 'package:all_in_one/page/login_template.dart';
 import 'package:all_in_one/page/pageview_demo.dart';
+import 'package:all_in_one/page/ranking_page.dart';
+import 'package:all_in_one/provider/illust_rank_provider.dart';
 import 'package:all_in_one/screen_fit/media_query_wrap.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,6 +15,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import 'package:hive/hive.dart';
+import 'package:provider/provider.dart';
 
 import 'custom_appbar.dart';
 import 'lazy_indexed_stack.dart';
@@ -32,24 +37,27 @@ class _MyAppState extends State<MyApp> {
     //透明化状态栏
     if (Theme.of(context).platform == TargetPlatform.android) {
       SystemChrome.setSystemUIOverlayStyle(
-          SystemUiOverlayStyle(statusBarColor: Colors.transparent));
+          const SystemUiOverlayStyle(statusBarColor: Colors.transparent));
     }
 
-    return MaterialApp(
-      builder: (context, widget) {
-        return MediaQueryWrapper(
-          builder: (BuildContext context) {
-            return widget!;
-          },
-        );
-      },
-      locale: const Locale.fromSubtags(
-          languageCode: 'zh', scriptCode: 'Hant'), //更改此项  来修改语言
-      title: 'Localizations Sample App',
-      theme: ThemeData(brightness: Brightness.light),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: const MyHomePage(),
+    return MultiProvider(
+      providers: [ChangeNotifierProvider(create: (_) => IllustProvider())],
+      child: MaterialApp(
+        builder: (context, widget) {
+          return MediaQueryWrapper(
+            builder: (BuildContext context) {
+              return widget!;
+            },
+          );
+        },
+        locale: const Locale.fromSubtags(
+            languageCode: 'zh', scriptCode: 'Hant'), //更改此项  来修改语言
+        title: 'Localizations Sample App',
+        theme: ThemeData(brightness: Brightness.light),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: const MyHomePage(),
+      ),
     );
   }
 }
@@ -86,10 +94,11 @@ class _MyHomePageState extends State<MyHomePage> {
           LazyIndexedStack(
             index: _currentIndex,
             children: [
-              LoginPage(),
+              RankingPage(),
               SliverContent(),
-              ShowAccountPage(),
-              PageViewDemo()
+              LoginTemplate(),
+              //ShowAccountPage(),
+              LoginPage(),
             ],
           ),
           Positioned(bottom: 0, width: 375, child: _buildTabBar())

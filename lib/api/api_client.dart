@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'package:all_in_one/api/oauth.dart';
+import 'package:all_in_one/constant/hive_boxes.dart';
+import 'package:all_in_one/models/models.dart';
 import 'package:dio/adapter.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
@@ -31,40 +33,41 @@ class ApiClient {
     final String time = Util.getIsoDate();
 
     httpClient = Dio()
-          ..options.baseUrl = "https://210.140.131.199"
-          ..options.headers = {
-            "X-Client-Time": time,
-            "X-Client-Hash": Util.getHash(time + hashSalt),
-            "User-Agent": "PixivAndroidApp/5.0.155 (Android 10.0; Pixel C)",
-            HttpHeaders.acceptLanguageHeader: Accept_Language,
-            "App-OS": "Android",
-            "App-OS-Version": "Android 10.0",
-            "App-Version": "5.0.166",
-            "Host": BASE_API_URL_HOST
-          }
-        /*
+      ..options.baseUrl = "https://210.140.131.199"
+      ..options.headers = {
+        "X-Client-Time": time,
+        "X-Client-Hash": Util.getHash(time + hashSalt),
+        "User-Agent": "PixivAndroidApp/5.0.155 (Android 10.0; Pixel C)",
+        HttpHeaders.acceptLanguageHeader: Accept_Language,
+        "App-OS": "Android",
+        "App-OS-Version": "Android 10.0",
+        "App-Version": "5.0.166",
+        "Host": BASE_API_URL_HOST
+      }
       ..interceptors.add(InterceptorsWrapper(onRequest:
           (RequestOptions options, RequestInterceptorHandler handler) async {
-        String result = "Bearer " + await Constant.accessToken!;
+        Account userAccount = HiveBoxes.accountBox.get("myAccount")!;
+        String result = "Bearer " + userAccount.accessToken!;
         options.headers["Authorization"] = result;
         return handler.next(options);
       }, onError: (DioError err, handler) async {
+        Account userAccount = HiveBoxes.accountBox.get("myAccount")!;
+        // TO DO: Lock
         // 返回400 一般是accessToken过期了
         if (err.response?.statusCode == 400) {
           Response response = await OAuthClient()
-              .postRefreshAuthToken(refreshToken: Constant.refreshToken!);
+              .postRefreshAuthToken(refreshToken: userAccount.refreshToken!);
           String? s1 = response.data["refresh_token"];
           String? s2 = response.data["access_token"];
           if (s1 != null && s2 != null) {
-            await Constant.storedToken(refreshToken: s1, accessToken: s2);
+            userAccount.refreshToken = s1;
+            userAccount.accessToken = s2;
+            HiveBoxes.accountBox.put("myAccount", userAccount);
             debugPrint("Store two new Token");
           }
         }
         debugPrint(err.toString());
-        int i = 0;
-      }))
-      */
-        ;
+      }));
 
     (httpClient.httpClientAdapter as DefaultHttpClientAdapter)
         .onHttpClientCreate = (client) {
@@ -77,24 +80,22 @@ class ApiClient {
     };
   }
 
-  //I
+  //
   Future<Response> getIllustRanking(String mode, String? date,
       {bool force = false}) async {
-    return httpClient.get(
-      "/v1/illust/ranking?filter=for_android",
-      queryParameters: {
-        "mode": mode,
-        "date": date,
-      },
-    );
+    return httpClient
+        .get("/v1/illust/ranking?filter=for_android", queryParameters: {
+      "mode": mode,
+      "date": date,
+    });
   }
 
-  Future<Response> getNovelRanking(String mode, String date) async {
+  Future<Response> getNovelRanking(String mode, String? date) async {
     return httpClient.get("/v1/novel/ranking?filter=for_android",
         queryParameters: {"mode": mode, "date": date});
   }
 
-  Future<Response> getMangaRanking(String mode, String date) async {
+  Future<Response> getMangaRanking(String mode, String? date) async {
     return httpClient.get("/v1/manga/ranking?filter=for_android",
         queryParameters: {"mode": mode, "date": date});
   }

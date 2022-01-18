@@ -109,6 +109,9 @@ class _LoginWebViewState extends State<LoginWebView> {
           headers: {
             "User-Agent": "PixivAndroidApp/5.0.155 (Android 6.0; Pixel C)"
           }),
+      onLoadHttpError: (controller, url, statusCode, description) {
+        debugPrint(description);
+      },
       onLoadStart: (controller, uri) async {
         debugPrint(uri.toString());
         debugPrint(uri?.host);
@@ -128,11 +131,15 @@ class _LoginWebViewState extends State<LoginWebView> {
                     response.runtimeType.toString());
             String? s1 = response.data["refresh_token"];
             String? s2 = response.data["access_token"];
+
+            String xx = response.data.toString();
             if (s1 != null && s2 != null) {
               HiveBoxes.accountBox
                   .put("myAccount", Account.fromJson(response.data));
 
-              //  await Constant.storedToken(refreshToken: s1, accessToken: s2);
+              // await Constant.storedToken(refreshToken: s1, accessToken: s2);
+              controller.loadUrl(
+                  urlRequest: URLRequest(url: Uri.parse("about:blank")));
               Navigator.pop(context, "login success");
             }
 

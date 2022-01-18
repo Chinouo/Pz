@@ -20,6 +20,8 @@ dependencies:
   crypto: ^3.0.1
   device_info_plus: ^3.0.1
 
+# FlutterCandies 
+  extended_image: ^6.0.1
 
  #DB
   hive: ^2.0.4

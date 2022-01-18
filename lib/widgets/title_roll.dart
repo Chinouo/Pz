@@ -15,7 +15,7 @@ class DailyContainer extends StatelessWidget {
       child: Column(
         children: [
           Divider(color: dividerColor, height: 0),
-          Padding(
+          const Padding(
             padding: EdgeInsets.only(top: 17, left: 21, right: 21),
             child: ListTile(
               contentPadding: EdgeInsets.zero,

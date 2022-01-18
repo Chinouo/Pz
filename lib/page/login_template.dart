@@ -19,9 +19,8 @@ class _LoginTemplateState extends State<LoginTemplate> {
         child: Column(
           children: [
             MaterialButton(
-              onPressed: () async {
-                String arg = await Navigator.push(context, routePageBuilder());
-                debugPrint("arg:$arg");
+              onPressed: () {
+                Navigator.push(context, routePageBuilder());
               },
               child: Text("Go Route"),
             )
@@ -52,21 +51,25 @@ class LoginWebView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: BackButton(
-          onPressed: () async {
-            Navigator.pop(context, "meg from pop Navigator!");
-          },
+        appBar: AppBar(
+          leading: BackButton(
+            onPressed: () async {
+              Navigator.pop(context, "meg from pop Navigator!");
+            },
+          ),
+          title: Text("Login WebView"),
         ),
-        title: Text("Login WebView"),
-      ),
-      body: _buildWebView(),
-    );
-  }
-
-  Widget _buildWebView() {
-    return InAppWebView(
-      initialUrlRequest: URLRequest(url: Uri.parse("https://bing.com")),
-    );
+        body: InAppWebView(
+          initialOptions: InAppWebViewGroupOptions(
+              android: AndroidInAppWebViewOptions(useHybridComposition: true)),
+          initialUrlRequest: URLRequest(url: Uri.parse("https://bing.com")),
+          onLoadStart: (controller, uri) {
+            if (uri.toString().contains("baidu")) {
+              controller.loadUrl(
+                  urlRequest: URLRequest(url: Uri.parse("about:blank")));
+              //Navigator.pop(context);
+            }
+          },
+        ));
   }
 }

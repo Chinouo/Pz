@@ -1,11 +1,12 @@
 import 'dart:ui';
 
 import 'package:all_in_one/api/api_client.dart';
+import 'package:all_in_one/provider/illust_rank_provider.dart';
 import 'package:all_in_one/widgets/title_roll.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-
+import 'package:provider/provider.dart';
 
 //自定义顶部AppBar
 class PersistentHeaderBuilder extends SliverPersistentHeaderDelegate {
@@ -86,7 +87,14 @@ class _SliverContentState extends State<SliverContent>
               MaterialButton(
                 onPressed: () async {
                   var api = ApiClient();
+                  debugPrint("fetch illust ranking ... ");
                   Response r = await api.getIllustRanking("day", null);
+
+                  debugPrint(r.data["illusts"].runtimeType
+                      .toString()); // List<dynamic>
+                  Provider.of<IllustProvider>(context, listen: false)
+                      .updateIllustRanking(r.data["illusts"]);
+
                   debugPrint(r.toString());
                 },
                 child: Text("illust"),
@@ -105,13 +113,17 @@ class _SliverContentState extends State<SliverContent>
               MaterialButton(
                 onPressed: () async {
                   var api = ApiClient();
-                  Response r = await api.getNovelRanking(
-                      "day", toRequestDate(DateTime.now()));
+                  Response r = await api.getNovelRanking("day", null);
+                  String a = r.toString();
                   debugPrint(r.toString());
                 },
                 child: Text("novel"),
                 color: Colors.blue,
-              )
+              ),
+              Consumer<IllustProvider>(builder: (_, illusts, __) {
+                return Text(
+                    "illistsCount: ${illusts.illustsCollection.length}");
+              })
             ],
           ),
         ),
@@ -166,14 +178,16 @@ class _SliverContentState extends State<SliverContent>
   }
 
   Widget _buildListView() {
-    return SliverList(delegate: SliverChildBuilderDelegate((_, index) {
-      return Container(
-        color: Colors.primaries[index % 18],
-        height: 168,
-        child: Center(
-          child: Text("$index"),
-        ),
-      );
-    }));
+    return SliverList(
+      delegate: SliverChildBuilderDelegate((_, index) {
+        return Container(
+          color: Colors.primaries[index % 18],
+          height: 168,
+          child: Center(
+            child: Text("$index"),
+          ),
+        );
+      }),
+    );
   }
 }

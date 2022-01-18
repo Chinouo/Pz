@@ -17,6 +17,4 @@ class Util {
     var digest = md5.convert(content);
     return digest.toString();
   }
-
-
 }
