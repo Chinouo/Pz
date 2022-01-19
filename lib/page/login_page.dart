@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:all_in_one/api/oauth.dart';
 import 'package:all_in_one/constant/constant.dart';
 import 'package:all_in_one/constant/hive_boxes.dart';
@@ -75,12 +77,8 @@ class _LoginWebViewState extends State<LoginWebView> {
   @override
   void initState() {
     super.initState();
-    codeVer = CryptoPlugin.getCodeVer();
-    // codeVer = Constant.loginInfo.codeVer!;
-    codeChanllenge = CryptoPlugin.getCodeChallenge(codeVer);
-    //Constant.loginInfo.codeChallenge =
-    //   CryptoPlugin.getCodeChallenge(Constant.loginInfo.codeVer!);
-    // codeChanllenge = Constant.loginInfo.codeChallenge!;
+    codeVer = CryptoPlugin.genCodeVer();
+    codeChanllenge = CryptoPlugin.genCodeChallenge(codeVer);
   }
 
   @override
@@ -101,6 +99,7 @@ class _LoginWebViewState extends State<LoginWebView> {
   Widget _buildWebView() {
     return InAppWebView(
       initialOptions: InAppWebViewGroupOptions(
+          crossPlatform: InAppWebViewOptions(resourceCustomSchemes: ["pixiv"]),
           android: AndroidInAppWebViewOptions(useHybridComposition: true)),
       initialUrlRequest: URLRequest(
           url: Uri.parse(
@@ -111,6 +110,19 @@ class _LoginWebViewState extends State<LoginWebView> {
           }),
       onLoadHttpError: (controller, url, statusCode, description) {
         debugPrint(description);
+      },
+      onLoadResourceCustomScheme: (controller, url) async {
+        if (url.scheme == "pixiv") {
+          var response = CustomSchemeResponse(
+              data: Uint8List.fromList([]).buffer.asUint8List(),
+              contentType: "text/html",
+              contentEncoding: "utf-8");
+          return response;
+        }
+        return null;
+      },
+      onPageCommitVisible: (controller, url) async {
+        debugPrint("page:$url");
       },
       onLoadStart: (controller, uri) async {
         debugPrint(uri.toString());

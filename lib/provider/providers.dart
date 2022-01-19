@@ -2,8 +2,6 @@ import 'package:provider/provider.dart';
 
 import 'token_provider.dart';
 
-
-
 /*
 class ProviderHelper{
 
@@ -15,5 +13,3 @@ static List<Provider> buildProviders(){
 
 }
 */
-
-

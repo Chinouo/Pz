@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:crypto/crypto.dart';
 
 class CryptoPlugin {
-  static String getCodeVer() {
+  static String genCodeVer() {
     const String randomKeySet =
         'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
     final result = List.generate(128,
@@ -12,7 +12,7 @@ class CryptoPlugin {
     return result;
   }
 
-  static String getCodeChallenge(String codeVer) {
+  static String genCodeChallenge(String codeVer) {
     final String codeVerifier = codeVer;
 
     final codeChallenge = base64Url

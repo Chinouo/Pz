@@ -4,6 +4,7 @@ import 'package:all_in_one/models/illust/illust.dart';
 import 'package:all_in_one/models/models.dart';
 import 'package:all_in_one/page/login_info_page_demo.dart';
 import 'package:all_in_one/page/login_page.dart';
+import 'package:all_in_one/page/login_page_real.dart';
 import 'package:all_in_one/page/login_template.dart';
 import 'package:all_in_one/page/pageview_demo.dart';
 import 'package:all_in_one/page/ranking_page.dart';
@@ -96,9 +97,10 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               RankingPage(),
               SliverContent(),
-              LoginTemplate(),
+              //LoginTemplate(),
               //ShowAccountPage(),
               LoginPage(),
+              LoginEntry()
             ],
           ),
           Positioned(bottom: 0, width: 375, child: _buildTabBar())
