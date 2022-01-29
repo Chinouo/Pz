@@ -1,56 +1,14 @@
 ///  展示每日Ranking排行表的页面
 /// 见Figma 初版设计图
 
-import 'dart:math';
 import 'dart:ui';
 
 import 'package:all_in_one/provider/illust_rank_provider.dart';
 import 'package:all_in_one/widgets/pixiv_image.dart';
+import 'package:all_in_one/widgets/sliver_title.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
 import 'package:provider/provider.dart';
-
-//自定义顶部AppBar
-class PersistentHeaderBuilder extends SliverPersistentHeaderDelegate {
-  final double _minExtent;
-  final double _maxExtent;
-  final Widget Function(BuildContext context, double offset) _builder;
-
-  @override
-  Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return _builder(context, shrinkOffset);
-  }
-
-  @override
-  double get maxExtent => _maxExtent;
-
-  @override
-  double get minExtent => _minExtent;
-
-  Widget Function(BuildContext context, double offset) get builder => _builder;
-
-  @override
-  bool shouldRebuild(covariant PersistentHeaderBuilder oldDelegate) {
-    return oldDelegate.maxExtent != maxExtent ||
-        oldDelegate.minExtent != minExtent ||
-        oldDelegate.builder != builder;
-  }
-
-  PersistentHeaderBuilder(
-      {required double minExtent,
-      required double maxExtent,
-      required Widget Function(BuildContext context, double offset) builder})
-      : _maxExtent = maxExtent,
-        _minExtent = minExtent,
-        _builder = builder;
-}
-
-// 特性
-class CustomBouncingScrollPhysics extends BouncingScrollPhysics {
-  @override
-  double applyBoundaryConditions(ScrollMetrics position, double value) => -1.1;
-}
 
 // 根据OverScroll 进行字体缩放的字体Widget
 
@@ -62,12 +20,6 @@ class RankingPage extends StatefulWidget {
 }
 
 class _RankingPageState extends State<RankingPage> {
-  final SpringDescription spring =
-      const SpringDescription(mass: 30, stiffness: 1, damping: 1);
-
-  // 滑动控制器 用于监听滑动距离变化
-  final ScrollController _controller = ScrollController();
-
   // 触发背景模糊的滑动阈值
   final double backdropEnableOffset = 100.0;
 
@@ -93,7 +45,6 @@ class _RankingPageState extends State<RankingPage> {
         return false;
       },
       child: CustomScrollView(
-        controller: _controller,
         physics: const BouncingScrollPhysics(),
         slivers: [
           SliverPersistentHeader(
@@ -135,7 +86,7 @@ class _RankingPageState extends State<RankingPage> {
                   return SizedBox(
                     height: 64,
                     child: Text(
-                      "Rank",
+                      "Settng",
                       style: TextStyle(fontSize: value),
                     ),
                   );
@@ -165,44 +116,6 @@ class _RankingPageState extends State<RankingPage> {
         ],
       ),
     );
-  }
-}
-
-class BlurStatuBar extends StatelessWidget {
-  const BlurStatuBar({
-    Key? key,
-    required this.titleOpacity,
-    required this.statuBarColor,
-  }) : super(key: key);
-
-  final Color statuBarColor;
-
-  final double titleOpacity;
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRect(
-        child: BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-      child: AnimatedContainer(
-        height: 100,
-        color: statuBarColor,
-        duration: const Duration(microseconds: 100),
-        child: AnimatedOpacity(
-          opacity: titleOpacity,
-          duration: const Duration(milliseconds: 200),
-          child: const Center(
-            child: Text(
-              " Rank",
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 24,
-              ),
-            ),
-          ),
-        ),
-      ),
-    ));
   }
 }
 

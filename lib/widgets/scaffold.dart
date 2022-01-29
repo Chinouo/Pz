@@ -8,6 +8,7 @@ import 'package:all_in_one/page/login_page_real.dart';
 import 'package:all_in_one/page/login_template.dart';
 import 'package:all_in_one/page/pageview_demo.dart';
 import 'package:all_in_one/page/ranking_page.dart';
+import 'package:all_in_one/page/user_setting_page.dart';
 import 'package:all_in_one/provider/illust_rank_provider.dart';
 import 'package:all_in_one/screen_fit/media_query_wrap.dart';
 import 'package:flutter/material.dart';
@@ -99,7 +100,8 @@ class _MyHomePageState extends State<MyHomePage> {
               SliverContent(),
               //LoginTemplate(),
               //ShowAccountPage(),
-              LoginPage(),
+              //LoginPage(),
+              SettingPage(),
               LoginEntry()
             ],
           ),
