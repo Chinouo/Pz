@@ -2,6 +2,7 @@
   用户设置列表
 */
 
+import 'package:all_in_one/constant/hive_boxes.dart';
 import 'package:flutter/material.dart';
 import 'package:all_in_one/widgets/sliver_title.dart';
 
@@ -106,7 +107,13 @@ class _SettingPageState extends State<SettingPage> {
           margin: EdgeInsets.only(top: 20),
           width: 313,
           height: 155,
-          child: Center(child: Text("用户信息")),
+          child: GestureDetector(
+              onTap: () {
+                Navigator.pushNamed(context, "/loginEntry");
+              },
+              child: Center(
+                  child: Text(
+                      "${HiveBoxes.accountBox.get("myAccount") ?? "Null"}"))),
         ),
         Wrap(
           spacing: 20,

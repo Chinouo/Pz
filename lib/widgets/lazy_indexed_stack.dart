@@ -1,4 +1,4 @@
-/// Thx to OpenJMU 's author Alex (https://github.com/AlexV525)
+/// Code from OpenJMU 's author Alex (https://github.com/AlexV525)
 ///
 /// A佬的思路就是当用户没点到所需界面的时候，IndexedStack内
 /// 对应的Widget用SizeBox生成，达到LazyBuild.

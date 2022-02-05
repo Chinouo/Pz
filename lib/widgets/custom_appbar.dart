@@ -103,11 +103,10 @@ class _SliverContentState extends State<SliverContent>
               MaterialButton(
                 onPressed: () async {
                   var api = ApiClient();
-                  Response r = await api.getMangaRanking(
-                      "day", toRequestDate(DateTime.now()));
+                  Response r = await api.getSpotlightArticles();
                   debugPrint(r.toString());
                 },
-                child: Text("manga"),
+                child: Text("API测试"),
                 color: Colors.blue,
               ),
               MaterialButton(

@@ -99,4 +99,18 @@ class ApiClient {
     return httpClient.get("/v1/manga/ranking?filter=for_android",
         queryParameters: {"mode": mode, "date": date});
   }
+
+  // Pixvision 的 内容 catogory 写死为 all 得了
+  Future<Response> getSpotlightArticles() {
+    return httpClient.get(
+      "/v1/spotlight/articles?filter=for_android",
+      queryParameters: {"category": "all"},
+    );
+  }
+
+  // 获得推荐的插画
+  Future<Response> getRecommend() async {
+    return httpClient.get(
+        "/v1/illust/recommended?filter=for_ios&include_ranking_label=true");
+  }
 }

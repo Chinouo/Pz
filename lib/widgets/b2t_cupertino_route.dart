@@ -5,27 +5,18 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
-const double _kBackGestureWidth = 20.0;
-const double _kMinFlingVelocity = 1.0; // Screen widths per second.
+const double _kMinFlingVelocity = 1.0;
 
-// An eyeballed value for the maximum time it takes for a page to animate forward
-// if the user releases a page mid swipe.
-const int _kMaxDroppedSwipePageForwardAnimationTime = 800; // Milliseconds.
+const int _kMaxDroppedSwipePageForwardAnimationTime = 800;
 
-// The maximum time for a page to get reset to it's original position if the
-// user releases a page mid swipe.
-const int _kMaxPageBackAnimationTime = 300; // Milliseconds.
+const int _kMaxPageBackAnimationTime = 300;
 
-/// Barrier color for a Cupertino modal barrier.
-///
-/// Extracted from https://developer.apple.com/design/resources/.
+const int kPagePushTime = 300;
+
 const Color kCupertinoModalBarrierColor = CupertinoDynamicColor.withBrightness(
   color: Color(0x33000000),
   darkColor: Color(0x7A000000),
 );
-
-// The duration of the transition used when a modal popup is shown.
-const Duration _kModalPopupTransitionDuration = Duration(milliseconds: 335);
 
 /// Offset from offscreen to the top to fully on screen.
 /// 从右向左划入屏幕的路由动画
@@ -34,6 +25,9 @@ final Animatable<Offset> kRightMiddleTween = Tween<Offset>(
   end: Offset.zero,
 );
 
+final Animatable<Offset> kBottomTopTween =
+    Tween<Offset>(begin: const Offset(0.0, 1.0), end: Offset.zero);
+
 // 旧路由
 class FoundationRoute<T> extends PageRoute<T> {
   FoundationRoute({required this.builder});
@@ -41,14 +35,14 @@ class FoundationRoute<T> extends PageRoute<T> {
   WidgetBuilder builder;
 
   @override
-  bool canTransitionTo(TransitionRoute<dynamic> nextRoute) =>
-      nextRoute is IOSPageRoute;
+  bool canTransitionTo(TransitionRoute<dynamic> nextRoute) => true;
 
   @override
-  bool canTransitionFrom(TransitionRoute<dynamic> previousRoute) => true;
+  bool canTransitionFrom(TransitionRoute<dynamic> previousRoute) => false;
 
+  // 不设置，那么Skia 会保持原来的图层
   @override
-  Color? get barrierColor => null;
+  Color? get barrierColor => Colors.black;
 
   @override
   String? get barrierLabel => null;
@@ -56,17 +50,18 @@ class FoundationRoute<T> extends PageRoute<T> {
   @override
   Widget buildPage(BuildContext context, Animation<double> animation,
       Animation<double> secondaryAnimation) {
-    return Builder(builder: builder);
+    return builder(context);
   }
 
   @override
   bool get opaque => true;
 
   @override
-  bool get maintainState => true;
+  bool get maintainState => false;
 
   @override
-  Duration get transitionDuration => const Duration(seconds: 2);
+  Duration get transitionDuration =>
+      const Duration(milliseconds: kPagePushTime);
 
   @override
   Widget buildTransitions(
@@ -75,9 +70,7 @@ class FoundationRoute<T> extends PageRoute<T> {
     Animation<double> secondaryAnimation,
     Widget child,
   ) {
-    final Animation<Offset> position =
-        Tween<Offset>(begin: const Offset(1.0, 0.0), end: Offset.zero)
-            .animate(animation);
+    final Animation<Offset> position = kBottomTopTween.animate(animation);
     final Animation<double> scaleFactor =
         Tween<double>(begin: 1.0, end: 0.94).animate(secondaryAnimation);
 
@@ -143,9 +136,10 @@ class IOSPageRoute<T> extends PopupRoute<T> with VerticalTransitionMixin {
   }
 
   @override
-  bool canTransitionTo(TransitionRoute<dynamic> nextRoute) {
-    return true;
-  }
+  bool canTransitionTo(TransitionRoute<dynamic> nextRoute) => false;
+
+  @override
+  bool canTransitionFrom(TransitionRoute<dynamic> previousRoute) => true;
 
   @override
   bool get maintainState => true;

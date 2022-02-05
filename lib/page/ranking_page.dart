@@ -1,5 +1,6 @@
-///  展示每日Ranking排行表的页面
-/// 见Figma 初版设计图
+/// 主页
+/// 结构由上到下
+/// illust排行 -> pixivsion -> recommended
 
 import 'dart:ui';
 
@@ -9,6 +10,7 @@ import 'package:all_in_one/widgets/sliver_title.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
 import 'package:provider/provider.dart';
+import 'package:waterfall_flow/waterfall_flow.dart';
 
 // 根据OverScroll 进行字体缩放的字体Widget
 
@@ -86,7 +88,7 @@ class _RankingPageState extends State<RankingPage> {
                   return SizedBox(
                     height: 64,
                     child: Text(
-                      "Settng",
+                      "Ranking",
                       style: TextStyle(fontSize: value),
                     ),
                   );
@@ -223,4 +225,106 @@ class RankingContent extends StatelessWidget {
       ],
     );
   }
+
+//   Widget _buildPixiVison(BuildContext context) {
+//     // 头部标题
+//     final Widget header = Padding(
+//       padding: const EdgeInsets.symmetric(horizontal: 29.0, vertical: 18.0),
+//       child: Column(
+//         children: [
+//           const Divider(
+//             color: Colors.grey,
+//             height: 0,
+//           ),
+//           Padding(
+//             padding: const EdgeInsets.only(top: 8.0),
+//             child: Row(
+//               children: [
+//                 Text(
+//                   rankingName,
+//                   style: const TextStyle(
+//                     fontSize: 18,
+//                     fontWeight: FontWeight.bold,
+//                   ),
+//                 ),
+//                 const Spacer(),
+//                 const Text("See all")
+//               ],
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+
+//     // 图片 以及 介绍
+//     Widget content = ListView.builder(
+//       scrollDirection: Axis.horizontal,
+//       physics: const BouncingScrollPhysics(),
+//       itemBuilder: (context, index) {
+//         return SizedBox(
+//           width: 200,
+//           height: 200,
+//           child: Column(
+//             children: [PixivImage(url: url), Text("$index abababababab")],
+//           ),
+//         );
+//       },
+//     );
+
+//     return Column(
+//       children: [
+//         header,
+//         SizedBox(
+//           height: 225,
+//           child: content,
+//         ),
+//       ],
+//     );
+//   }
+
+// // 推荐图片
+//   Widget _buildRecommended(BuildContext context) {
+//     // 头部标题 代码类似上面 不过稍微有点定制
+//     final Widget header = Padding(
+//       padding: const EdgeInsets.symmetric(horizontal: 29.0, vertical: 18.0),
+//       child: Column(
+//         children: [
+//           const Divider(
+//             color: Colors.grey,
+//             height: 0,
+//           ),
+//           Padding(
+//             padding: const EdgeInsets.only(top: 8.0),
+//             child: Row(
+//               children: [
+//                 Text(
+//                   rankingName,
+//                   style: const TextStyle(
+//                     fontSize: 18,
+//                     fontWeight: FontWeight.bold,
+//                   ),
+//                 ),
+//               ],
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+
+//     Widget content = WaterfallFlow.builder(
+//       gridDelegate: const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
+//           crossAxisSpacing: 18, crossAxisCount: 2),
+//       itemBuilder: (context, index) {
+//         double height = 70;
+//         if (index % 7 == 0) {
+//           height = 30;
+//         }
+//         return PixivImage(
+//           url: url,
+//           height: height,
+//         );
+//       },
+//     );
+//   }
+
 }
