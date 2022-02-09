@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:all_in_one/screen_fit/custom_binding.dart';
 import 'package:all_in_one/screen_fit/screen_fit_util.dart';
 import 'package:all_in_one/util/log_utils.dart';
+import 'package:flutter/cupertino.dart';
 
 import 'widgets/scaffold.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -14,7 +15,6 @@ void main() {
     //初始化常量
     ScreenFitUtil().initConfig(baseWidth: 375);
     ScreenFitWidgetsFlutterBinding.ensureInitialized();
-
     await Hive.initFlutter();
     await HiveBoxes.openBoxes();
 

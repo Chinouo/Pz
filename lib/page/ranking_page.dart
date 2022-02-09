@@ -5,6 +5,8 @@
 import 'dart:ui';
 
 import 'package:all_in_one/provider/illust_rank_provider.dart';
+import 'package:all_in_one/provider/pivision_provider.dart';
+import 'package:all_in_one/provider/recommand_illust_provider.dart';
 import 'package:all_in_one/widgets/pixiv_image.dart';
 import 'package:all_in_one/widgets/sliver_title.dart';
 import 'package:flutter/material.dart';
@@ -97,20 +99,14 @@ class _RankingPageState extends State<RankingPage> {
               ),
             ),
           ),
-          const SliverToBoxAdapter(
-            child: RankingContent(
-              rankingName: "illust",
-            ),
+          SliverToBoxAdapter(
+            child: _buildRanking(context),
           ),
-          const SliverToBoxAdapter(
-            child: RankingContent(
-              rankingName: "Manga",
-            ),
+          SliverToBoxAdapter(
+            child: _buildPixivison(context),
           ),
-          const SliverToBoxAdapter(
-            child: RankingContent(
-              rankingName: "Novel",
-            ),
+          SliverToBoxAdapter(
+            child: _buildRecommanded(context),
           ),
           const SliverPadding(
             padding: EdgeInsets.only(bottom: 83),
@@ -119,18 +115,9 @@ class _RankingPageState extends State<RankingPage> {
       ),
     );
   }
-}
 
-// 从分割线开始的详情页
-class RankingContent extends StatelessWidget {
-  const RankingContent({Key? key, required this.rankingName}) : super(key: key);
-
-  // 排行榜的标题
-  final String rankingName;
-
-  @override
-  Widget build(BuildContext context) {
-    // 排行小部件的顶部结构
+  Widget _buildRanking(BuildContext context) {
+// 排行小部件的顶部结构
     final Widget header = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 29.0, vertical: 18.0),
       child: Column(
@@ -142,16 +129,16 @@ class RankingContent extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 8.0),
             child: Row(
-              children: [
+              children: const [
                 Text(
-                  rankingName,
-                  style: const TextStyle(
+                  "Ranking",
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const Spacer(),
-                const Text("See all")
+                Spacer(),
+                Text("See all")
               ],
             ),
           ),
@@ -161,34 +148,13 @@ class RankingContent extends StatelessWidget {
     // 滑动的图片
 
     Widget content = Consumer<IllustProvider>(builder: (_, illustProvider, __) {
-      if (illustProvider.illustsCollection.isEmpty) {
-        return CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          scrollDirection: Axis.horizontal,
-          slivers: [
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 31),
-              sliver: SliverGrid(
-                  delegate: SliverChildBuilderDelegate(
-                    (_, index) {
-                      return SizedBox(
-                        width: 180,
-                        height: 180,
-                        child: Text("$index"),
-                      );
-                    },
-                    childCount: 3,
-                  ),
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                      mainAxisExtent: 180,
-                      mainAxisSpacing: 17,
-                      maxCrossAxisExtent: 225)),
-            ),
-          ],
-        );
+      final int collectionLength = illustProvider.collection.length;
+      if (collectionLength == 0) {
+        return const SizedBox.shrink();
       }
 
       return CustomScrollView(
+        shrinkWrap: true,
         physics: const BouncingScrollPhysics(),
         scrollDirection: Axis.horizontal,
         slivers: [
@@ -197,14 +163,15 @@ class RankingContent extends StatelessWidget {
             sliver: SliverGrid(
                 delegate: SliverChildBuilderDelegate(
                   (_, index) {
+                    debugPrint("rank img idx: $index");
                     return PixivImage(
                       url: illustProvider
-                          .illustsCollection[index].imageUrls!.squareMedium!,
+                          .collection[index].imageUrls!.squareMedium!,
                       width: 180,
                       height: 180,
                     );
                   },
-                  childCount: illustProvider.illustsCollection.length,
+                  childCount: collectionLength,
                 ),
                 gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                     mainAxisExtent: 180,
@@ -225,106 +192,148 @@ class RankingContent extends StatelessWidget {
       ],
     );
   }
+}
 
-//   Widget _buildPixiVison(BuildContext context) {
-//     // 头部标题
-//     final Widget header = Padding(
-//       padding: const EdgeInsets.symmetric(horizontal: 29.0, vertical: 18.0),
-//       child: Column(
-//         children: [
-//           const Divider(
-//             color: Colors.grey,
-//             height: 0,
-//           ),
-//           Padding(
-//             padding: const EdgeInsets.only(top: 8.0),
-//             child: Row(
-//               children: [
-//                 Text(
-//                   rankingName,
-//                   style: const TextStyle(
-//                     fontSize: 18,
-//                     fontWeight: FontWeight.bold,
-//                   ),
-//                 ),
-//                 const Spacer(),
-//                 const Text("See all")
-//               ],
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
+Widget _buildPixivison(BuildContext context) {
+  // 头部标题
+  final Widget header = Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 29.0, vertical: 18.0),
+    child: Column(
+      children: [
+        const Divider(
+          color: Colors.grey,
+          height: 0,
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: 8.0),
+          child: Row(
+            children: const [
+              Text(
+                "Pixivsion",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Spacer(),
+              Text("See all")
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
 
-//     // 图片 以及 介绍
-//     Widget content = ListView.builder(
-//       scrollDirection: Axis.horizontal,
-//       physics: const BouncingScrollPhysics(),
-//       itemBuilder: (context, index) {
-//         return SizedBox(
-//           width: 200,
-//           height: 200,
-//           child: Column(
-//             children: [PixivImage(url: url), Text("$index abababababab")],
-//           ),
-//         );
-//       },
-//     );
+  // 图片 以及 介绍
+  Widget content = Consumer<PixivsionProvider>(
+    builder: (_, pixivsionProvider, child) {
+      final int collectionLength = pixivsionProvider.collection.length;
+      if (collectionLength == 0) {
+        return const SizedBox.shrink();
+      }
+      return CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        scrollDirection: Axis.horizontal,
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 31),
+            sliver: SliverGrid(
+                delegate: SliverChildBuilderDelegate(
+                  (_, index) {
+                    return PixivImage(
+                      url: pixivsionProvider.collection[index].thumbnail!,
+                      width: 180,
+                      height: 180,
+                      fit: BoxFit.cover,
+                    );
+                  },
+                  childCount: collectionLength,
+                ),
+                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                    mainAxisExtent: 180,
+                    mainAxisSpacing: 17,
+                    maxCrossAxisExtent: 225)),
+          ),
+        ],
+      );
+    },
+  );
 
-//     return Column(
-//       children: [
-//         header,
-//         SizedBox(
-//           height: 225,
-//           child: content,
-//         ),
-//       ],
-//     );
-//   }
+  return Column(
+    children: [
+      header,
+      SizedBox(
+        height: 225,
+        child: content,
+      ),
+    ],
+  );
+}
 
-// // 推荐图片
-//   Widget _buildRecommended(BuildContext context) {
-//     // 头部标题 代码类似上面 不过稍微有点定制
-//     final Widget header = Padding(
-//       padding: const EdgeInsets.symmetric(horizontal: 29.0, vertical: 18.0),
-//       child: Column(
-//         children: [
-//           const Divider(
-//             color: Colors.grey,
-//             height: 0,
-//           ),
-//           Padding(
-//             padding: const EdgeInsets.only(top: 8.0),
-//             child: Row(
-//               children: [
-//                 Text(
-//                   rankingName,
-//                   style: const TextStyle(
-//                     fontSize: 18,
-//                     fontWeight: FontWeight.bold,
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
+// 推荐图片   Lazy build
+Widget _buildRecommanded(BuildContext context) {
+  // 头部标题 代码类似上面 不过稍微有点定制
+  final Widget header = Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 29.0, vertical: 18.0),
+    child: Column(
+      children: [
+        const Divider(
+          color: Colors.grey,
+          height: 0,
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: 8.0),
+          child: Row(
+            children: const [
+              Text(
+                "Recommand",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
 
-//     Widget content = WaterfallFlow.builder(
-//       gridDelegate: const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
-//           crossAxisSpacing: 18, crossAxisCount: 2),
-//       itemBuilder: (context, index) {
-//         double height = 70;
-//         if (index % 7 == 0) {
-//           height = 30;
-//         }
-//         return PixivImage(
-//           url: url,
-//           height: height,
-//         );
-//       },
-//     );
-//   }
+  Widget content =
+      Consumer<RecommandProvider>(builder: (_, recommandProvider, child) {
+    final int collectionLength = recommandProvider.collection.length;
+    if (collectionLength == 0) {
+      return const SizedBox.shrink();
+    }
 
+    return WaterfallFlow.builder(
+      cacheExtent: 300,
+      shrinkWrap: true,
+      physics: const BouncingScrollPhysics(),
+      scrollDirection: Axis.vertical,
+      itemCount: collectionLength + 10000,
+      gridDelegate: const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
+          crossAxisSpacing: 18, crossAxisCount: 2),
+      itemBuilder: (context, index) {
+        debugPrint("recommand: current build img idx : $index");
+        double height = 270;
+        if (index % 7 == 0) {
+          height = 200;
+        }
+        return PixivImage(
+          fit: BoxFit.cover,
+          url: recommandProvider
+              .collection[index % collectionLength].imageUrls!.squareMedium!,
+          height: height,
+        );
+      },
+    );
+  });
+
+  return Column(
+    children: [
+      header,
+      SizedBox(height: 1000, child: content),
+    ],
+  );
 }

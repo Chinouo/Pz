@@ -2,9 +2,9 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:all_in_one/api/oauth.dart';
+import 'package:all_in_one/constant/constant.dart';
 import 'package:all_in_one/constant/hive_boxes.dart';
 import 'package:all_in_one/models/models.dart';
-import 'package:all_in_one/page/login_page.dart';
 import 'package:all_in_one/util/crypto_plugin.dart';
 import 'package:all_in_one/widgets/b2t_cupertino_route.dart';
 import 'package:dio/dio.dart';
@@ -58,6 +58,7 @@ class _LoginEntryState extends State<LoginEntry> {
 
                 if (code != null) {
                   await _fetchUserJson(code);
+                  await Navigator.popAndPushNamed(context, "/home");
                 }
               },
               color: Colors.blue,

@@ -86,16 +86,16 @@ class _SliverContentState extends State<SliverContent>
             children: [
               MaterialButton(
                 onPressed: () async {
-                  var api = ApiClient();
-                  debugPrint("fetch illust ranking ... ");
-                  Response r = await api.getIllustRanking("day", null);
+                  // var api = ApiClient();
+                  // debugPrint("fetch illust ranking ... ");
+                  // Response r = await api.getIllustRanking("day", null);
 
-                  debugPrint(r.data["illusts"].runtimeType
-                      .toString()); // List<dynamic>
-                  Provider.of<IllustProvider>(context, listen: false)
-                      .updateIllustRanking(r.data["illusts"]);
+                  // debugPrint(r.data["illusts"].runtimeType
+                  //     .toString()); // List<dynamic>
+                  // Provider.of<IllustProvider>(context, listen: false)
+                  //     .updateIllustRanking(r.data["illusts"]);
 
-                  debugPrint(r.toString());
+                  // debugPrint(r.toString());
                 },
                 child: Text("illust"),
                 color: Colors.blue,
@@ -120,8 +120,7 @@ class _SliverContentState extends State<SliverContent>
                 color: Colors.blue,
               ),
               Consumer<IllustProvider>(builder: (_, illusts, __) {
-                return Text(
-                    "illistsCount: ${illusts.illustsCollection.length}");
+                return Text("illistsCount: ${illusts.collection.length}");
               })
             ],
           ),

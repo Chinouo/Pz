@@ -7,8 +7,10 @@ class HiveBoxes {
 
   static late Box<Account> accountBox;
 
+  static Account? get account => accountBox.get("myAccount");
+
   static Future<void> openBoxes() async {
-    Hive..registerAdapter(AccountAdapter());
+    Hive.registerAdapter(AccountAdapter());
 
     await Future.wait(<Future<void>>[
       () async {

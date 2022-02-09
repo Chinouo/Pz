@@ -80,9 +80,9 @@ class ApiClient {
     };
   }
 
-  //
-  Future<Response> getIllustRanking(String mode, String? date,
-      {bool force = false}) async {
+  // 默认获取当日
+  Future<Response> getIllustRanking(
+      {String? mode = "day", String? date}) async {
     return httpClient
         .get("/v1/illust/ranking?filter=for_android", queryParameters: {
       "mode": mode,

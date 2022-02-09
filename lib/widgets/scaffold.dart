@@ -1,30 +1,16 @@
-import 'dart:ui';
-
-import 'package:all_in_one/models/illust/illust.dart';
-import 'package:all_in_one/models/models.dart';
+import 'package:all_in_one/constant/constant.dart';
 import 'package:all_in_one/page/home_page.dart';
-
-import 'package:all_in_one/page/login_page.dart';
 import 'package:all_in_one/page/login_page_real.dart';
-import 'package:all_in_one/page/login_template.dart';
-import 'package:all_in_one/page/pageview_demo.dart';
-import 'package:all_in_one/page/ranking_page.dart';
-import 'package:all_in_one/page/user_setting_page.dart';
 import 'package:all_in_one/provider/illust_rank_provider.dart';
+import 'package:all_in_one/provider/pivision_provider.dart';
+import 'package:all_in_one/provider/recommand_illust_provider.dart';
 import 'package:all_in_one/screen_fit/media_query_wrap.dart';
 import 'package:all_in_one/widgets/b2t_cupertino_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-
-import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
-
-import 'custom_appbar.dart';
-import 'lazy_indexed_stack.dart';
-
-import 'package:all_in_one/constant/hive_boxes.dart';
+import 'package:provider/single_child_widget.dart';
 
 class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -45,8 +31,9 @@ class _MyAppState extends State<MyApp> {
     }
 
     return MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => IllustProvider())],
+      providers: _buildProviders(),
       child: MaterialApp(
+        navigatorKey: Constant.navigatorKey,
         builder: (context, widget) {
           return MediaQueryWrapper(
             builder: (BuildContext context) {
@@ -60,11 +47,33 @@ class _MyAppState extends State<MyApp> {
         theme: ThemeData(brightness: Brightness.light),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: const MyHomePage(),
+        initialRoute: Constant.isLogged ? '/home' : '/login',
+        onGenerateInitialRoutes: (initialRoute) =>
+            _handleInitialRoute(initialRoute),
 
         onGenerateRoute: (settings) => _handleCustomRoute(settings),
       ),
     );
+  }
+
+  // 自己搞一套路由 ...
+  List<Route<dynamic>> _handleInitialRoute(String initialRoute) {
+    if (initialRoute == '/home') {
+      return [MaterialPageRoute(builder: (context) => const MyHomePage())];
+    }
+    if (initialRoute == '/login') {
+      return [FoundationRoute(builder: (context) => LoginEntry())];
+    }
+    return [
+      PageRouteBuilder(pageBuilder: (_, __, ___) {
+        return Container(
+          color: Colors.white,
+          child: Center(
+            child: Text("Internal Error"),
+          ),
+        );
+      })
+    ];
   }
 
   Route<dynamic>? _handleCustomRoute(RouteSettings settings) {
@@ -75,5 +84,23 @@ class _MyAppState extends State<MyApp> {
         },
       );
     }
+
+    if (settings.name == '/home') {
+      return MaterialPageRoute(
+        builder: (context) {
+          return const MyHomePage();
+        },
+      );
+    }
+  }
+
+  List<SingleChildWidget> _buildProviders() {
+    return <SingleChildWidget>[
+      ChangeNotifierProvider<IllustProvider>(create: (_) => IllustProvider()),
+      ChangeNotifierProvider<RecommandProvider>(
+          create: (_) => RecommandProvider()),
+      ChangeNotifierProvider<PixivsionProvider>(
+          create: (_) => PixivsionProvider()),
+    ];
   }
 }

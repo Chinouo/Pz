@@ -1,4 +1,13 @@
-import 'package:all_in_one/models/token_model.dart';
+import 'package:all_in_one/constant/hive_boxes.dart';
+import 'package:flutter/widgets.dart';
+
+class Constant {
+  static bool get isLogged =>
+      HiveBoxes.account?.refreshToken == null ? false : true;
+
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
+}
 
 /*
 class Constant {
