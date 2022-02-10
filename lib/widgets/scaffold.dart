@@ -1,11 +1,17 @@
+import 'package:all_in_one/api/api_client.dart';
 import 'package:all_in_one/constant/constant.dart';
+import 'package:all_in_one/models/illust/illust.dart';
+import 'package:all_in_one/models/spotlight_article.dart';
+import 'package:all_in_one/models/trend_tag/trend_tag.dart';
 import 'package:all_in_one/page/home_page.dart';
 import 'package:all_in_one/page/login_page_real.dart';
 import 'package:all_in_one/provider/illust_rank_provider.dart';
 import 'package:all_in_one/provider/pivision_provider.dart';
 import 'package:all_in_one/provider/recommand_illust_provider.dart';
+import 'package:all_in_one/provider/trend_tag_provider.dart';
 import 'package:all_in_one/screen_fit/media_query_wrap.dart';
 import 'package:all_in_one/widgets/b2t_cupertino_route.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -20,6 +26,11 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     debugPrint(AppLocalizations.supportedLocales.toString());
@@ -101,6 +112,8 @@ class _MyAppState extends State<MyApp> {
           create: (_) => RecommandProvider()),
       ChangeNotifierProvider<PixivsionProvider>(
           create: (_) => PixivsionProvider()),
+      ChangeNotifierProvider<TrendTagProvider>(
+          create: (_) => TrendTagProvider())
     ];
   }
 }
