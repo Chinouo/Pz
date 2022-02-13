@@ -41,24 +41,23 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     //debugPrint(MediaQuery.of(context).toString());
 
-    return Scaffold(
-        backgroundColor: Color(0xFFFFFF).withOpacity(1.0),
-        body: Stack(children: [
-          LazyIndexedStack(
-            index: _currentIndex,
-            children: [
-              RankingPage(),
-              SliverContent(),
-              //LoginTemplate(),
-              //ShowAccountPage(),
-              //LoginPage(),
-              SearchPage(),
-              SettingPage(),
-              // Placeholder()
-            ],
-          ),
-          Positioned(bottom: 0, width: 375, child: _buildTabBar())
-        ]));
+    return Stack(children: [
+      LazyIndexedStack(
+        index: _currentIndex,
+        children: [
+          RankingPage(),
+          Placeholder(),
+          //SliverContent(),
+          //LoginTemplate(),
+          //ShowAccountPage(),
+          //LoginPage(),
+          SearchPage(),
+          SettingPage(),
+          // Placeholder()
+        ],
+      ),
+      Positioned(bottom: 0, width: 375, child: _buildTabBar())
+    ]);
   }
 
   Widget _buildTabBar() {

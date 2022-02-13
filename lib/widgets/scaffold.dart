@@ -48,14 +48,16 @@ class _MyAppState extends State<MyApp> {
         builder: (context, widget) {
           return MediaQueryWrapper(
             builder: (BuildContext context) {
-              return widget!;
+              return Material(child: widget!);
             },
           );
         },
         locale: const Locale.fromSubtags(
             languageCode: 'zh', scriptCode: 'Hant'), //更改此项  来修改语言
         title: 'Localizations Sample App',
-        theme: ThemeData(brightness: Brightness.light),
+        theme: ThemeData(
+          brightness: Brightness.light,
+        ),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         initialRoute: Constant.isLogged ? '/home' : '/login',

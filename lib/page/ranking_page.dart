@@ -397,7 +397,6 @@ class _RankingPageState extends State<RankingPage> {
   }
 }
 
-
 /// 在这里好像不需要  自己写 Demo 的时候问题不复现了 可能是 法法的 Sliver 比官方强吧
 /// 重写 保证在刷新的时候  如果手指不放开 列表默认会跳到底部
 // class CustomBouncingScrollPhysics extends BouncingScrollPhysics {

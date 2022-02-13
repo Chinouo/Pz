@@ -114,38 +114,17 @@ class ApiClient {
         "/v1/illust/recommended?filter=for_ios&include_ranking_label=true");
   }
 
-  // // 自动补全关键词？
-  // Future<AutoWords> getSearchAutoCompleteKeywords(String word) async {
-  //   final response = await httpClient.get(
-  //     "/v2/search/autocomplete?merge_plain_keyword_results=true",
-  //     queryParameters: {"word": word},
-  //   );
-  //   return AutoWords.fromJson(response.data);
-  // }
-
-  // // 搜索 api ?
-  // Future<Response> getSearchIllust(String word,
-  //     {String? sort,
-  //     String? search_target,
-  //     DateTime? start_date,
-  //     DateTime? end_date,
-  //     int? bookmark_num}) async {
-  //   return httpClient.get(
-  //       "/v1/search/illust?filter=for_android&merge_plain_keyword_results=true",
-  //       queryParameters: notNullMap({
-  //         "sort": sort,
-  //         "search_target": search_target,
-  //         "start_date": getFormatDate(start_date),
-  //         "end_date": getFormatDate(end_date),
-  //         "bookmark_num": bookmark_num,
-  //         "word": word
-  //       }));
-  // }
-
   // 搜索用户 ？
   Future<Response> getSearchUser(String word) async {
     return httpClient.get("/v1/search/user?filter=for_android",
         queryParameters: {"word": word});
+  }
+
+  // 推荐用户
+  Future<Response> getUserRecommended() async {
+    return httpClient.get(
+      "/v1/user/recommended?filter=for_android",
+    );
   }
 
   // 搜索下面的推荐标签 就 Gird 那些
@@ -153,6 +132,42 @@ class ApiClient {
     return httpClient.get(
       "/v1/trending-tags/illust?filter=for_android",
     );
+  }
+
+  // 搜索插画  见result_illust_list.dart
+  Future<Response> getSearchIllust(String word,
+      {String? sort,
+      String? search_target,
+      DateTime? start_date,
+      DateTime? end_date,
+      int? bookmark_num}) async {
+    String? queryStartDate;
+    String? queryEndDate;
+    if (start_date != null) {
+      queryStartDate = Util.formaDate(start_date);
+    }
+    if (end_date != null) {
+      queryEndDate = Util.formaDate(end_date);
+    }
+    return httpClient.get(
+        "/v1/search/illust?filter=for_android&merge_plain_keyword_results=true",
+        queryParameters: {
+          "sort": sort,
+          "search_target": search_target,
+          "start_date": queryStartDate,
+          "end_date": queryEndDate,
+          "bookmark_num": bookmark_num,
+          "word": word
+        });
+  }
+
+  // 自动补全词语？
+  Future<Response> getSearchAutoCompleteKeywords(String word) async {
+    final response = await httpClient.get(
+      "/v2/search/autocomplete?merge_plain_keyword_results=true",
+      queryParameters: {"word": word},
+    );
+    return response;
   }
 
   // 获得 next_url 的数据
