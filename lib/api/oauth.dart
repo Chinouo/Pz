@@ -9,6 +9,7 @@ import 'package:all_in_one/util/api_util.dart';
 
 // ignore: non_constant_identifier_names
 // 除了验证 一般情况下不在内存中
+// Todo: IOS Proxy?
 class OAuthClient {
   OAuthClient() {
     String time = Util.getIsoDate();
@@ -17,11 +18,11 @@ class OAuthClient {
       ..options.headers = {
         "X-Client-Time": time,
         "X-Client-Hash": Util.getHash(time + hashSalt),
-        "User-Agent": "PixivAndroidApp/5.0.155 (Android 6.0; Pixel C)",
+        "User-Agent": "PixivIOSApp/7.7.5 (iOS 13.2.0; iPhone XR)",
         HttpHeaders.acceptLanguageHeader: "zh-CN",
-        "App-OS": "Android",
-        "App-OS-Version": "Android 6.0",
-        "App-Version": "5.0.166",
+        "App-OS": "ios",
+        "App-OS-Version": "13.2.0",
+        "App-Version": "7.7.5",
         "Host": BASE_OAUTH_URL_HOST
       }
       ..options.contentType = Headers.formUrlEncodedContentType;
@@ -32,6 +33,7 @@ class OAuthClient {
           (X509Certificate cert, String host, int port) {
         return true;
       };
+
       return httpClient;
     };
 

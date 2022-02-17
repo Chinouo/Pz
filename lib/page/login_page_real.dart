@@ -64,6 +64,14 @@ class _LoginEntryState extends State<LoginEntry> {
               color: Colors.blue,
               child: Text("Login"),
             ),
+            MaterialButton(
+              onPressed: () async {
+                var dio = Dio();
+                Response r = await dio.get("https://www.google.com");
+                debugPrint(r.toString());
+              },
+              child: Text("IOS NETWORK"),
+            )
           ],
         ),
       ),
@@ -72,9 +80,13 @@ class _LoginEntryState extends State<LoginEntry> {
 
   // 获取用户信息
   Future<void> _fetchUserJson(String code) async {
-    OAuthClient oathClient = OAuthClient();
-    Response response = await oathClient.code2Token(code, codeVer);
-    HiveBoxes.accountBox.put("myAccount", Account.fromJson(response.data));
+    try {
+      OAuthClient oathClient = OAuthClient();
+      Response response = await oathClient.code2Token(code, codeVer);
+      HiveBoxes.accountBox.put("myAccount", Account.fromJson(response.data));
+    } catch (err) {
+      debugPrint(err.toString());
+    }
   }
 }
 
@@ -135,6 +147,9 @@ class _LoginWebViewState extends State<LoginWebView> {
                 data: Uint8List.fromList([]).buffer.asUint8List(),
                 contentType: "text/html",
                 contentEncoding: "utf-8");
+            if (Platform.isIOS) {
+              Navigator.pop(context, url.queryParameters["code"]);
+            }
             return response;
           }
           return null;
