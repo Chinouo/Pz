@@ -5,6 +5,7 @@
 /// 搜索 user 下面时推荐画师及其作品
 import 'package:all_in_one/api/api_client.dart';
 import 'package:all_in_one/models/illust/illust.dart';
+import 'package:all_in_one/models/illust/tag.dart';
 import 'package:all_in_one/provider/trend_tag_provider.dart';
 import 'package:all_in_one/widgets/pixiv_image.dart';
 import 'package:dio/dio.dart';
@@ -259,6 +260,8 @@ class SearchResult extends StatefulWidget {
 class _SearchResultState extends State<SearchResult> {
   late String result;
 
+  var api = ApiClient();
+
   @override
   void initState() {
     super.initState();
@@ -294,12 +297,14 @@ class _SearchResultState extends State<SearchResult> {
                       decoration: BoxDecoration(
                           color: CupertinoColors.tertiarySystemFill),
                       onChanged: (value) {
+                        api.getSearchAutoCompleteKeywords(value);
                         setState(() {
                           result = "正在输入";
                         });
                       },
                       onSubmitted: (value) async {
                         // 点击搜索
+                        api.getSearchIllust(value);
                         result = "in query ...";
                         setState(() {});
                       },
@@ -368,6 +373,29 @@ class _SearchResultState extends State<SearchResult> {
   }
 
   Widget _buildResult() {
+    FutureBuilder(builder: ((context, snapshot) {
+      if (snapshot.hasError) {
+        return Center(
+          child: Text("Error"),
+        );
+      }
+
+      switch (snapshot.connectionState) {
+        case ConnectionState.waiting:
+          return Center(
+            child: CupertinoActivityIndicator(animating: true),
+          );
+        case ConnectionState.done:
+          if (snapshot.hasData) return _buildResult();
+          return Center(
+            child: Text("No data"),
+          );
+        default:
+          return Center(
+            child: Text("nothing"),
+          );
+      }
+    }));
     return WaterfallFlow.builder(
         gridDelegate: SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2),
@@ -480,5 +508,23 @@ class _SearchFilterState extends State<SearchFilter> {
         ),
       ),
     );
+  }
+
+  final List<Tag> _autofillTag = <Tag>[];
+
+  void _handleAutoFillWordFrom(Response response) {
+    _autofillTag.clear();
+    for (var item in response.data["tags"]) {
+      _autofillTag.add(Tag.fromJson(item));
+    }
+  }
+
+  final List<Illust> _illustResult = <Illust>[];
+
+  void _handleIllustResultFrom(Response response) {
+    _illustResult.clear();
+    for (var item in response.data["illusts"]) {
+      _illustResult.add(Illust.fromJson(item));
+    }
   }
 }

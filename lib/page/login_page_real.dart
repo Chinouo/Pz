@@ -5,6 +5,7 @@ import 'package:all_in_one/api/oauth.dart';
 import 'package:all_in_one/constant/constant.dart';
 import 'package:all_in_one/constant/hive_boxes.dart';
 import 'package:all_in_one/models/models.dart';
+import 'package:all_in_one/page/search_page.dart';
 import 'package:all_in_one/util/crypto_plugin.dart';
 import 'package:all_in_one/widgets/b2t_cupertino_route.dart';
 import 'package:dio/dio.dart';
@@ -12,6 +13,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:provider/provider.dart';
+
+import 'cupertino_search_page.dart';
 
 class LoginEntry extends StatefulWidget {
   LoginEntry({Key? key}) : super(key: key);
@@ -66,11 +69,11 @@ class _LoginEntryState extends State<LoginEntry> {
             ),
             MaterialButton(
               onPressed: () async {
-                var dio = Dio();
-                Response r = await dio.get("https://www.google.com");
-                debugPrint(r.toString());
+                Navigator.push(context, MaterialPageRoute(builder: ((context) {
+                  return CupertinoPageRouteTemplate();
+                })));
               },
-              child: Text("IOS NETWORK"),
+              child: Text("Test Entry"),
             )
           ],
         ),
