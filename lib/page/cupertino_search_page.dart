@@ -1,13 +1,12 @@
 import 'dart:math';
-
+import 'package:all_in_one/models/illust/tag.dart';
+import 'package:all_in_one/models/trend_tag/trend_tag.dart';
 import 'package:all_in_one/page/search_page.dart';
-import 'package:all_in_one/widgets/custom_appbar.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:waterfall_flow/waterfall_flow.dart';
-
-import '../widgets/sliver_persistent_animated_head.dart';
 
 const Duration kMoveDuration = Duration(milliseconds: 200);
 
@@ -21,6 +20,52 @@ const double kInvisiable = 0.0;
 
 const double kVisiable = 1.0;
 
+const _debugUIErrorWidget = Center(
+  child: Text("Internal Error!"),
+);
+
+enum ComponentId {
+  searchAppBar,
+  tagGridView,
+  searchResultView,
+}
+
+class SearchPageLayoutDelegate extends MultiChildLayoutDelegate {
+  SearchPageLayoutDelegate({
+    required this.appBarConStraint,
+    required this.stackConstraint,
+  });
+
+  final BoxConstraints appBarConStraint;
+
+  final BoxConstraints stackConstraint;
+
+  @override
+  void performLayout(Size size) {
+    if (hasChild(ComponentId.searchAppBar)) {
+      layoutChild(ComponentId.searchAppBar, appBarConStraint);
+      positionChild(ComponentId.searchAppBar, Offset.zero);
+    }
+
+    if (hasChild(ComponentId.tagGridView)) {
+      layoutChild(ComponentId.tagGridView, stackConstraint);
+      positionChild(ComponentId.tagGridView, Offset.zero);
+    }
+
+    if (hasChild(ComponentId.searchResultView)) {
+      layoutChild(ComponentId.searchResultView, stackConstraint);
+      positionChild(ComponentId.searchResultView, Offset.zero);
+    }
+  }
+
+  @override
+  bool shouldRelayout(SearchPageLayoutDelegate oldDelegate) {
+    return oldDelegate.appBarConStraint != appBarConStraint ||
+        oldDelegate.stackConstraint != stackConstraint;
+  }
+}
+
+//
 class CupertinoPageRouteTemplate extends StatefulWidget {
   const CupertinoPageRouteTemplate({Key? key}) : super(key: key);
 
@@ -151,58 +196,11 @@ class _CupertinoPageRouteTemplateState extends State<CupertinoPageRouteTemplate>
   }
 }
 
-enum ComponentId {
-  searchAppBar,
-  tagGridView,
-  searchResultView,
-  fillViewPaddingTop
-}
-
-class SearchPageLayoutDelegate extends MultiChildLayoutDelegate {
-  SearchPageLayoutDelegate({
-    required this.appBarConStraint,
-    required this.stackConstraint,
-  });
-
-  final BoxConstraints appBarConStraint;
-
-  final BoxConstraints stackConstraint;
-
-  @override
-  void performLayout(Size size) {
-    Size size = Size.zero;
-    if (hasChild(ComponentId.fillViewPaddingTop)) {
-      size = layoutChild(ComponentId.fillViewPaddingTop, appBarConStraint);
-      positionChild(ComponentId.fillViewPaddingTop, Offset.zero);
-    }
-
-    if (hasChild(ComponentId.searchAppBar)) {
-      layoutChild(ComponentId.searchAppBar, appBarConStraint);
-      positionChild(ComponentId.searchAppBar, Offset(0, size.height));
-    }
-
-    if (hasChild(ComponentId.tagGridView)) {
-      layoutChild(ComponentId.tagGridView, stackConstraint);
-      positionChild(ComponentId.tagGridView, Offset.zero);
-    }
-
-    if (hasChild(ComponentId.searchResultView)) {
-      layoutChild(ComponentId.searchResultView, stackConstraint);
-      positionChild(ComponentId.searchResultView, Offset.zero);
-    }
-  }
-
-  @override
-  bool shouldRelayout(SearchPageLayoutDelegate oldDelegate) {
-    return oldDelegate.appBarConStraint != appBarConStraint ||
-        oldDelegate.stackConstraint != stackConstraint;
-  }
-}
-
-const double kShrinkSearchBarHeight = 200.0;
+const double kShrinkSearchBarHeight = 100.0;
 
 const double kStrengthSearchBarHeight = 300.0;
 
+///
 class SearchPage extends StatefulWidget {
   final Future<List<int>> f;
 
@@ -212,8 +210,25 @@ class SearchPage extends StatefulWidget {
   _SearchPageState createState() => _SearchPageState();
 }
 
+const kHistoryId = "0";
+const kAutoFillId = "1";
+const kResultId = "2";
+
 class _SearchPageState extends State<SearchPage> {
   double searchBarHeight = kStrengthSearchBarHeight;
+
+  /// Used for textfield floating.
+  final focus = ValueNotifier<bool>(false);
+
+  /// Used for select page after focus and text input.
+  /// This value is used to make key.
+  /// 0 -> history 1 -> autifill 2 -> result
+  final searchContentID = ValueNotifier<String>(kHistoryId);
+
+  final autofillFuture = ValueNotifier<Future<Response>?>(null);
+
+  /// Whether to demonstrate view under search textfiels.
+  bool shouldDisplaySearchView = false;
 
   @override
   void initState() {
@@ -222,6 +237,8 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint("Call Outter build");
+
     return LayoutBuilder(builder: (context, constraints) {
       debugPrint(constraints.toString());
       final appBarWidth = MediaQuery.of(context).size.width;
@@ -237,7 +254,6 @@ class _SearchPageState extends State<SearchPage> {
           _buildTagGridView(),
           _buildSearchResult(),
           _buildSearchBar(context),
-          _buildFillViewPaddingBox(context),
         ],
       );
     });
@@ -261,11 +277,7 @@ class _SearchPageState extends State<SearchPage> {
       focusNode: focusNode,
       onTap: () {
         // Todo: Shrink appbar and focus.
-        setState(() {
-          searchBarHeight = kShrinkSearchBarHeight;
-          searchTextAligment = kSearchTextFieldFocusAligment;
-          segOpacity = kVisiable;
-        });
+        focus.value = true;
       },
       onSuffixTap: () {
         textEditingController.clear();
@@ -273,59 +285,93 @@ class _SearchPageState extends State<SearchPage> {
       },
       onChanged: (words) {
         // Todo: Fetch AutoFillWord and build relative text.
-        setState(() {
-          f = widget.f;
-          isSubmit = false;
-          resultOpacity = 1.0;
-        });
+        searchContentID.value = kAutoFillId;
+        autofillFuture.value = fakeFuture();
       },
       onSubmitted: (words) {
         // Todo: Fetch IllustResult and build WaterFallFlow list.
-        setState(() {
-          // isSubmit = !isSubmit;
-          isSubmit = true;
-          if (resultOpacity == 0.0) {
-            resultOpacity = 1.0;
-          }
-        });
+        searchContentID.value = kResultId;
       },
     );
 
     const filter = Icon(Icons.filter_3_outlined);
 
-    final searchBar = AnimatedAlign(
-      alignment: Alignment(0.0, -0.7),
-      duration: kMoveDuration,
-      child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          child: Row(
-            children: [
-              Expanded(child: searchTextField),
-              filter,
-              MaterialButton(
-                onPressed: () {
-                  textEditingController.clear();
-                  focusNode.unfocus();
-                  setState(() {
-                    searchBarHeight = kStrengthSearchBarHeight;
-                    searchTextAligment = kSearchTextFieldUnFocusAligment;
-                    segOpacity = kInvisiable;
-                    isSubmit = false;
+    final searchBar = Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: Row(
+          children: [
+            Expanded(child: searchTextField),
+            filter,
+            MaterialButton(
+              onPressed: () {
+                textEditingController.clear();
+                focusNode.unfocus();
+                focus.value = false;
+                searchContentID.value = kHistoryId;
+                //To do: May need handle future.
+              },
+              child: Text("Cancle"),
+            ),
+          ],
+        ));
 
-                    resultOpacity = 0.0;
-                  });
-                },
-                child: Text("Cancle"),
-              ),
-            ],
-          )),
+    final size = MediaQuery.of(context).size;
+
+    // like SafeArea
+    final viewPaddingTopBox = SizedBox(
+      height: MediaQuery.of(context).viewPadding.top,
+      width: size.width,
     );
 
+    // 搜索栏 和 搜索目标 Widget
+    Widget result = ValueListenableBuilder<bool>(
+      valueListenable: focus,
+      builder: (context, isFocus, child) {
+        final realAppBarHeight =
+            MediaQuery.of(context).viewPadding.top + kShrinkSearchBarHeight;
+
+        final searchTarget = AnimatedOpacity(
+            opacity: isFocus ? kVisiable : kInvisiable,
+            duration: kMoveDuration,
+            child: CupertinoSlidingSegmentedControl(
+              children: const {
+                "Illusts": Text("Illust"),
+                "Users": Text("Users"),
+              },
+              onValueChanged: (str) {
+                // Todo:
+              },
+            ));
+
+        return Container(
+          height: realAppBarHeight,
+          color: Colors.grey.withOpacity(0.7),
+          child: Stack(
+            fit: StackFit.loose,
+            children: [
+              AnimatedPositioned(
+                top: isFocus ? MediaQuery.of(context).viewPadding.top : 77,
+                duration: kMoveDuration,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints.loose(size),
+                  child: Wrap(alignment: WrapAlignment.center, children: [
+                    searchBar,
+                    searchTarget,
+                  ]),
+                ),
+              )
+            ],
+          ),
+        );
+      },
+    );
+
+    //
     final searchTarget = AnimatedOpacity(
-        opacity: segOpacity,
+        opacity: kVisiable,
         duration: kMoveDuration,
         child: CupertinoSlidingSegmentedControl(
-          children: {
+          children: const {
             "Illusts": Text("Illust"),
             "Users": Text("Users"),
           },
@@ -334,72 +380,94 @@ class _SearchPageState extends State<SearchPage> {
           },
         ));
 
-    final appBarHeight =
-        MediaQuery.of(context).viewPadding.top + searchBarHeight;
+    final appBarWrap = Wrap(
+      children: [
+        viewPaddingTopBox,
+        result,
+      ],
+    );
+
     return LayoutId(
-        id: ComponentId.searchAppBar,
-        child: AnimatedContainer(
-          height: appBarHeight,
-          color: Colors.grey.withOpacity(0.7),
-          duration: const Duration(milliseconds: 200),
-          child: AnimatedAlign(
-            alignment: searchTextAligment,
-            duration: kMoveDuration,
-            child: Wrap(
-              alignment: WrapAlignment.center,
-              direction: Axis.horizontal,
-              children: <Widget>[
-                searchBar,
-                searchTarget,
-              ],
-            ),
-          ),
-        ));
+      id: ComponentId.searchAppBar,
+      child: result,
+    );
   }
 
-  Widget _buildAutoFillWordsList(Key key) {
-    return FutureBuilder<List<int>>(
-        future: f,
-        builder: ((context, snapshot) {
-          if (snapshot.hasError) {
-            //return _buildFutureError(snapshot.error);
-          }
-          switch (snapshot.connectionState) {
-            case ConnectionState.none:
-              debugPrint('-------ConnectionState.none---------');
-              break;
-            case ConnectionState.waiting:
-              return Center(
-                  child: CupertinoActivityIndicator(
-                animating: true,
-              ));
-            case ConnectionState.active:
-              debugPrint('-------ConnectionState.active---------');
-              break;
-            case ConnectionState.done:
-              debugPrint(
-                  '-------ConnectionState.done---${snapshot.hasData}------');
-              if (snapshot.hasData) {
-                return ListView.separated(
-                  key: key,
-                  itemCount: snapshot.data!.length,
-                  separatorBuilder: (_, __) => const Divider(),
-                  itemBuilder: (_, index) {
-                    return Container(
-                      color: Colors.primaries[index % 18],
-                      child: Center(child: Text("${snapshot.data!.length}")),
-                    );
-                  },
-                );
-                ;
-              }
-              break;
-          }
+  final tagCollection = <Tag>[];
 
-          return const Center(
-            child: Text("An exception occure!"),
-          );
-        }));
+  Widget _buildAutoFillWordsList() {
+    // 外层是关键词 里层是搜索结果
+    return ValueListenableBuilder<Future<Response>?>(
+      valueListenable: autofillFuture,
+      builder: (context, future, child) {
+        return FutureBuilder<Response>(
+            future: future,
+            builder: ((context, snapshot) {
+              if (snapshot.hasError) {
+                //return _buildFutureError(snapshot.error);
+              }
+              switch (snapshot.connectionState) {
+                case ConnectionState.none:
+                  debugPrint('-------ConnectionState.none---------');
+                  break;
+                case ConnectionState.waiting:
+                  return Center(
+                      child: CupertinoActivityIndicator(
+                    animating: true,
+                  ));
+                case ConnectionState.active:
+                  debugPrint('-------ConnectionState.active---------');
+                  break;
+                case ConnectionState.done:
+                  debugPrint(
+                      '-------ConnectionState.done---${snapshot.hasData}------');
+                  if (snapshot.hasData) {
+                    final data = snapshot.data?.data["tags"] ?? [];
+
+                    if (data.isEmpty) return const SizedBox.shrink();
+                    tagCollection.clear();
+                    for (var item in data) {
+                      tagCollection.add(Tag.fromJson(item));
+                    }
+
+                    return ColoredBox(
+                      key: UniqueKey(),
+                      color: Colors.red,
+                      child: CustomScrollView(
+                        physics: const BouncingScrollPhysics(),
+                        slivers: [
+                          _buildSliverFillAppBarBox(),
+                          SliverList(
+                              delegate:
+                                  SliverChildBuilderDelegate((context, index) {
+                            if (index % 2 == 0) {
+                              return Container(
+                                height: 70,
+                                color: Colors.primaries[index % 18],
+                                child: Center(
+                                    child:
+                                        Text("${tagCollection[index].name}")),
+                              );
+                            } else {
+                              return const Divider(
+                                height: 3,
+                                color: Colors.grey,
+                              );
+                            }
+                          }, childCount: tagCollection.length))
+                        ],
+                      ),
+                    );
+                  }
+                  break;
+              }
+
+              return const Center(
+                child: Text("An exception occure!"),
+              );
+            }));
+      },
+    );
   }
 
   Widget _buildTagGridView() {
@@ -442,15 +510,26 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
+  final trendTag = <TrendTag>[];
+
   Widget _buildTagsGridSliver(Response<dynamic> response) {
+    List list = response.data["trend_tags"] ?? [];
+    if (list.isEmpty) return const SliverToBoxAdapter();
+
+    trendTag.clear();
+    for (var item in list) {
+      trendTag.add(TrendTag.fromJson(item));
+    }
+
     return SliverGrid(
       delegate: SliverChildBuilderDelegate(
         (context, index) {
           return Container(
             color: Colors.primaries[index % 18],
+            child: Text("${trendTag[index].tag}"),
           );
         },
-        childCount: 30,
+        childCount: trendTag.length,
       ),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
@@ -479,7 +558,7 @@ class _SearchPageState extends State<SearchPage> {
         duration: const Duration(
           milliseconds: 200,
         ),
-        height: searchBarHeight,
+        height: kShrinkSearchBarHeight,
       ),
     );
   }
@@ -489,17 +568,55 @@ class _SearchPageState extends State<SearchPage> {
   Key k1 = UniqueKey();
   Key k2 = UniqueKey();
 
-  Widget _buildSearchResult() {
-    return LayoutId(
-        id: ComponentId.searchResultView,
-        child: SearchContent(
-            opacity: resultOpacity,
-            body: isSubmit
-                ? _buildWaterFallView(k2)
-                : _buildAutoFillWordsList(k1)));
+  Widget _buildHistory() {
+    return Center(
+      child: Text("History"),
+    );
   }
 
-  Widget _buildWaterFallView(Key key) {
+  Widget _buildSearchResult() {
+    Widget cur = ValueListenableBuilder<String>(
+      valueListenable: searchContentID,
+      builder: (context, value, child) {
+        Widget? body = _debugUIErrorWidget;
+        switch (value) {
+          case kHistoryId:
+            body = _buildHistory();
+            break;
+          case kAutoFillId:
+            body = _buildAutoFillWordsList();
+            break;
+          case kResultId:
+            body = _buildWaterFallView();
+            break;
+        }
+        return AnimatedSwitcher(
+          duration: kMoveDuration,
+          child: body,
+        );
+      },
+    );
+
+    // out islistener builder used for change opacity after focus
+    Widget aniBox = ValueListenableBuilder<bool>(
+      valueListenable: focus,
+      builder: (context, isFocus, child) {
+        return AnimatedOpacity(
+          duration: kMoveDuration,
+          opacity: isFocus ? kVisiable : kInvisiable,
+          child: child,
+        );
+      },
+      child: cur,
+    );
+
+    return LayoutId(
+      id: ComponentId.searchResultView,
+      child: aniBox,
+    );
+  }
+
+  Widget _buildWaterFallView() {
     final waterfallSliver = SliverWaterfallFlow(
       delegate: SliverChildBuilderDelegate(((context, index) {
         return Container(
@@ -516,24 +633,12 @@ class _SearchPageState extends State<SearchPage> {
     );
 
     return CustomScrollView(
-      key: key,
       physics: const BouncingScrollPhysics(),
       slivers: <Widget>[
+        _buildSliverFillAppBarBox(),
         waterfallSliver,
       ],
     );
-  }
-
-  Widget _buildFillViewPaddingBox(BuildContext context) {
-    final viewPadding = MediaQuery.of(context).viewPadding.top;
-    final appBarWidth = MediaQuery.of(context).size.width;
-    return LayoutId(
-        id: ComponentId.fillViewPaddingTop,
-        child: SizedBox(
-          height: viewPadding,
-          width: appBarWidth,
-          child: const ColoredBox(color: Colors.grey),
-        ));
   }
 }
 
