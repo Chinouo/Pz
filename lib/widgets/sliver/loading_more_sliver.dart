@@ -84,7 +84,7 @@ class LoadingMoreSliverWithRefreshHandleDelegete
       return Center(
         child: CupertinoActivityIndicator.partiallyRevealed(
           progress: percentage,
-          radius: 36 * percentage,
+          radius: 36 * percentage + 1,
         ),
       );
     }

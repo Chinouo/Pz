@@ -4,11 +4,13 @@ import 'package:all_in_one/models/illust/illust.dart';
 import 'package:all_in_one/models/illust/tag.dart';
 import 'package:all_in_one/models/trend_tag/trend_tag.dart';
 import 'package:all_in_one/page/search_page.dart';
+import 'package:all_in_one/util/log_utils.dart';
 import 'package:all_in_one/widgets/pixiv_image.dart';
 import 'package:all_in_one/widgets/sliver/loading_more_sliver.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
 import 'package:waterfall_flow/waterfall_flow.dart';
 
@@ -665,18 +667,6 @@ class _SearchPageState extends State<SearchPage> {
 
   // 构建瀑布流， 构建成功返回 CustomScrollView
   Widget _buildWaterFallView() {
-    final waterfallSliver = SliverWaterfallFlow(
-      delegate: SliverChildBuilderDelegate(((context, index) {
-        return PixivImage(
-          url: resultIllusts[index].imageUrls!.squareMedium!,
-          height: 200,
-          fit: BoxFit.cover,
-        );
-      })),
-      gridDelegate: const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-      ),
-    );
     final res = FutureBuilder<Response?>(
         future: searchResultFuture,
         builder: (context, snapshot) {
@@ -700,16 +690,15 @@ class _SearchPageState extends State<SearchPage> {
                 List list = snapshot.data?.data["illusts"] ?? [];
                 if (list.isEmpty) return const SliverToBoxAdapter();
                 resultIllusts.clear();
+                List<Illust> initialData = <Illust>[];
                 for (var item in list) {
-                  resultIllusts.add(Illust.fromJson(item));
+                  initialData.add(Illust.fromJson(item));
                 }
 
-                return CustomScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  slivers: <Widget>[
-                    _buildSliverFillAppBarBox(),
-                    waterfallSliver,
-                  ],
+                String? nextUrl = snapshot.data?.data["next_url"];
+                return WaterFallFlowSearchIllustResult(
+                  initialData: initialData,
+                  nextUrl: nextUrl,
                 );
               }
               break;
@@ -780,10 +769,15 @@ var fakeFuture = () {
 
 // 瀑布流的搜索结果
 class WaterFallFlowSearchIllustResult extends StatefulWidget {
-  const WaterFallFlowSearchIllustResult({Key? key, this.future})
-      : super(key: key);
+  const WaterFallFlowSearchIllustResult({
+    Key? key,
+    this.nextUrl,
+    required this.initialData,
+  }) : super(key: key);
+  // 检索后 服务端第一次返回的数据
+  final List<Illust> initialData;
 
-  final Future<Response>? future;
+  final String? nextUrl;
 
   @override
   State<WaterFallFlowSearchIllustResult> createState() =>
@@ -792,7 +786,18 @@ class WaterFallFlowSearchIllustResult extends StatefulWidget {
 
 class _WaterFallFlowSearchIllustResultState
     extends State<WaterFallFlowSearchIllustResult> {
-  final result = <Illust>[];
+  @override
+  void initState() {
+    super.initState();
+    result = widget.initialData;
+    resultLength = widget.initialData.length;
+    targetBuildIndex = min(targetBuildIndex + steps, resultLength);
+    nextUrl = widget.nextUrl;
+  }
+
+  late final List<Illust> result;
+
+  int resultLength = 0;
 
   // 分页长度
   final int steps = 24;
@@ -802,17 +807,22 @@ class _WaterFallFlowSearchIllustResultState
   // 目标加载到第几个元素
   int targetBuildIndex = 0;
 
+  String? nextUrl;
+
   @override
   Widget build(BuildContext context) {
     final waterfallSliver = SliverWaterfallFlow(
-      delegate: SliverChildBuilderDelegate(((context, index) {
-        currentBuildIndex = index;
-        return PixivImage(
-          url: result[index].imageUrls!.squareMedium!,
-          height: 200,
-          fit: BoxFit.cover,
-        );
-      })),
+      delegate: SliverChildBuilderDelegate(
+        ((context, index) {
+          currentBuildIndex = index;
+          return PixivImage(
+            url: result[index].imageUrls!.squareMedium!,
+            height: 200,
+            fit: BoxFit.cover,
+          );
+        }),
+        childCount: targetBuildIndex,
+      ),
       gridDelegate: const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
       ),
@@ -836,12 +846,39 @@ class _WaterFallFlowSearchIllustResultState
   // 懒加载处理 当拉到底时 没有更多元素 调用网络请求
   // 如果还有未加载完的 触发 setState 更新状态
   Future<void> _handleLazyLoad() async {
-    if (result.length == currentBuildIndex + 1) {
+    if (resultLength == currentBuildIndex + 1) {
       // 意味着我们已经把结果加载完了 需要向服务器发新的请求
-      setState(() {});
+      if (nextUrl != null) {
+        try {
+          var api = ApiClient();
+          Response res = await api.getNext(nextUrl!);
+          final List list = res.data["illusts"];
+          for (var item in list) {
+            result.add(Illust.fromJson(item));
+          }
+          // To avoid setState during build or layout.
+          SchedulerBinding.instance!.addPostFrameCallback(((timeStamp) {
+            setState(() {
+              resultLength += list.length;
+              targetBuildIndex = min(steps + currentBuildIndex, resultLength);
+            });
+          }));
+        } catch (e, s) {
+          LogUitls.e(e.toString(), stackTrace: s);
+        }
+      } else {
+        showDialog(
+          context: context,
+          builder: (context) => const Text("No more content"),
+        );
+      }
     } else {
       // 进行下一页加载
-
+      SchedulerBinding.instance!.addPostFrameCallback(((timeStamp) {
+        setState(() {
+          targetBuildIndex = min(steps + currentBuildIndex, resultLength);
+        });
+      }));
     }
   }
 }
