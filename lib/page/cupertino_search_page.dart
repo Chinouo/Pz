@@ -1,7 +1,11 @@
 import 'dart:math';
+import 'package:all_in_one/api/api_client.dart';
+import 'package:all_in_one/models/illust/illust.dart';
 import 'package:all_in_one/models/illust/tag.dart';
 import 'package:all_in_one/models/trend_tag/trend_tag.dart';
 import 'package:all_in_one/page/search_page.dart';
+import 'package:all_in_one/widgets/pixiv_image.dart';
+import 'package:all_in_one/widgets/sliver/loading_more_sliver.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -29,6 +33,31 @@ enum ComponentId {
   tagGridView,
   searchResultView,
 }
+
+const List<int> stared = <int>[
+  0,
+  100,
+  250,
+  500,
+  1000,
+  5000,
+  10000,
+  20000,
+  30000,
+  50000,
+];
+
+const List<String> sort = <String>[
+  "date_desc",
+  "date_asc",
+  "popular_desc",
+];
+
+const List<String> searchTarget_1 = [
+  "partial_match_for_tags",
+  "exact_match_for_tags",
+  "title_and_caption",
+];
 
 class SearchPageLayoutDelegate extends MultiChildLayoutDelegate {
   SearchPageLayoutDelegate({
@@ -230,9 +259,20 @@ class _SearchPageState extends State<SearchPage> {
   /// Whether to demonstrate view under search textfiels.
   bool shouldDisplaySearchView = false;
 
+  late ApiClient apiClient;
+
+  late Future<Response> trendTagsFuture;
+
   @override
   void initState() {
     super.initState();
+    apiClient = ApiClient();
+    trendTagsFuture = apiClient.getIllustTrendTags();
+  }
+
+  @override
+  void didUpdateWidget(covariant SearchPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
   }
 
   @override
@@ -286,11 +326,14 @@ class _SearchPageState extends State<SearchPage> {
       onChanged: (words) {
         // Todo: Fetch AutoFillWord and build relative text.
         searchContentID.value = kAutoFillId;
-        autofillFuture.value = fakeFuture();
+        autofillFuture.value = apiClient.getSearchAutoCompleteKeywords(words);
       },
       onSubmitted: (words) {
         // Todo: Fetch IllustResult and build WaterFallFlow list.
         searchContentID.value = kResultId;
+        var apiClient = ApiClient();
+        searchResultFuture = apiClient.getSearchIllust(words,
+            sort: sort[0], search_target: searchTarget_1[0]);
       },
     );
 
@@ -512,6 +555,8 @@ class _SearchPageState extends State<SearchPage> {
 
   final trendTag = <TrendTag>[];
 
+  Future<Response?>? searchResultFuture;
+
   Widget _buildTagsGridSliver(Response<dynamic> response) {
     List list = response.data["trend_tags"] ?? [];
     if (list.isEmpty) return const SliverToBoxAdapter();
@@ -616,29 +661,66 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
+  final resultIllusts = <Illust>[];
+
+  // 构建瀑布流， 构建成功返回 CustomScrollView
   Widget _buildWaterFallView() {
     final waterfallSliver = SliverWaterfallFlow(
       delegate: SliverChildBuilderDelegate(((context, index) {
-        return Container(
-          color: Colors.primaries[index % 18],
-          height: (index * 100) % 300,
-          child: Center(
-            child: Text("$index"),
-          ),
+        return PixivImage(
+          url: resultIllusts[index].imageUrls!.squareMedium!,
+          height: 200,
+          fit: BoxFit.cover,
         );
       })),
       gridDelegate: const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
       ),
     );
+    final res = FutureBuilder<Response?>(
+        future: searchResultFuture,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return _buildFutureError(snapshot.error);
+          }
 
-    return CustomScrollView(
-      physics: const BouncingScrollPhysics(),
-      slivers: <Widget>[
-        _buildSliverFillAppBarBox(),
-        waterfallSliver,
-      ],
-    );
+          switch (snapshot.connectionState) {
+            case ConnectionState.none:
+              debugPrint('-------ConnectionState.none---------');
+              break;
+            case ConnectionState.waiting:
+              return _buildLoading();
+            case ConnectionState.active:
+              debugPrint('-------ConnectionState.active---------');
+              break;
+            case ConnectionState.done:
+              debugPrint(
+                  '-------ConnectionState.done---${snapshot.hasData}------');
+              if (snapshot.hasData) {
+                List list = snapshot.data?.data["illusts"] ?? [];
+                if (list.isEmpty) return const SliverToBoxAdapter();
+                resultIllusts.clear();
+                for (var item in list) {
+                  resultIllusts.add(Illust.fromJson(item));
+                }
+
+                return CustomScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  slivers: <Widget>[
+                    _buildSliverFillAppBarBox(),
+                    waterfallSliver,
+                  ],
+                );
+              }
+              break;
+          }
+
+          return const Center(
+            child: Text("An exception occure!"),
+          );
+        });
+
+    return res;
   }
 }
 
@@ -690,53 +772,76 @@ class _SearchContentState extends State<SearchContent> {
   }
 }
 
-// class TitlePersistHeader extends SliverPersistentHeaderDelegate {
-//   TitlePersistHeader(
-//       {required this.shrinkHeight,
-//       required this.stretchhHeight,
-//       required this.parentSetState,
-//       required this.parentStateTicker,
-//       required this.vsync});
-
-//   @override
-//   TickerProvider vsync;
-
-//   double shrinkHeight;
-
-//   double stretchhHeight;
-
-//   VoidCallback parentSetState;
-
-//   TickerProvider parentStateTicker;
-
-//   @override
-//   Widget build(
-//       BuildContext context, double shrinkOffset, bool overlapsContent) {
-//     return Container(
-//       color: const Color.fromARGB(255, 74, 147, 207),
-//       child: Center(
-//           child: MaterialButton(
-//         onPressed: () {
-//           parentSetState();
-//         },
-//         child: Text("$shrinkOffset"),
-//       )),
-//     );
-//   }
-
-//   @override
-//   double get maxExtent => stretchhHeight;
-
-//   @override
-//   double get minExtent => shrinkHeight;
-
-//   @override
-//   bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) =>
-//       oldDelegate.maxExtent != maxExtent || oldDelegate.minExtent != minExtent;
-// }
-
 var fakeFuture = () {
   return Future.delayed(Duration(seconds: 5), () {
     return List.generate(100, (index) => index * Random().nextInt(10));
   });
 };
+
+// 瀑布流的搜索结果
+class WaterFallFlowSearchIllustResult extends StatefulWidget {
+  const WaterFallFlowSearchIllustResult({Key? key, this.future})
+      : super(key: key);
+
+  final Future<Response>? future;
+
+  @override
+  State<WaterFallFlowSearchIllustResult> createState() =>
+      _WaterFallFlowSearchIllustResultState();
+}
+
+class _WaterFallFlowSearchIllustResultState
+    extends State<WaterFallFlowSearchIllustResult> {
+  final result = <Illust>[];
+
+  // 分页长度
+  final int steps = 24;
+
+  // 当前加载到第几个元素
+  int currentBuildIndex = 0;
+  // 目标加载到第几个元素
+  int targetBuildIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final waterfallSliver = SliverWaterfallFlow(
+      delegate: SliverChildBuilderDelegate(((context, index) {
+        currentBuildIndex = index;
+        return PixivImage(
+          url: result[index].imageUrls!.squareMedium!,
+          height: 200,
+          fit: BoxFit.cover,
+        );
+      })),
+      gridDelegate: const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+      ),
+    );
+
+    return CustomScrollView(
+      physics: const BouncingScrollPhysics(),
+      slivers: <Widget>[
+        //_buildSliverFillAppBarBox(),
+        waterfallSliver,
+        LoadingMoreSliver(
+            delegate: LoadingMoreSliverWithRefreshHandleDelegete(
+          maxLayoutExtent: 200,
+          triggerDistance: 100,
+          onRefresh: _handleLazyLoad,
+        ))
+      ],
+    );
+  }
+
+  // 懒加载处理 当拉到底时 没有更多元素 调用网络请求
+  // 如果还有未加载完的 触发 setState 更新状态
+  Future<void> _handleLazyLoad() async {
+    if (result.length == currentBuildIndex + 1) {
+      // 意味着我们已经把结果加载完了 需要向服务器发新的请求
+      setState(() {});
+    } else {
+      // 进行下一页加载
+
+    }
+  }
+}

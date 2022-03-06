@@ -21,6 +21,8 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
 
+import 'cupertino_search_page.dart' hide SearchPage;
+
 class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key}) : super(key: key);
 
@@ -46,7 +48,7 @@ class _MyHomePageState extends State<MyHomePage> {
         index: _currentIndex,
         children: [
           RankingPage(),
-          Placeholder(),
+          CupertinoPageRouteTemplate(),
           //SliverContent(),
           //LoginTemplate(),
           //ShowAccountPage(),
