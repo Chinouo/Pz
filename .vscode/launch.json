@@ -1,0 +1,29 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Pz",
+            "request": "launch",
+            "type": "dart",
+            "args": ["--host-vmservice-port", "77777"]
+        },
+        {
+            "name": "Pz (profile mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "Pz (release mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "Flutter",
+            "program": "lib/main.dart",
+            "request": "launch",
+            "type": "dart"
+        }
+    ]
+}

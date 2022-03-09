@@ -1,12 +1,13 @@
 import 'dart:math';
 import 'package:all_in_one/api/api_client.dart';
+import 'package:all_in_one/component/illust_card.dart';
 import 'package:all_in_one/constant/search_config.dart';
 import 'package:all_in_one/models/illust/illust.dart';
 import 'package:all_in_one/models/illust/tag.dart';
 import 'package:all_in_one/models/trend_tag/trend_tag.dart';
 import 'package:all_in_one/page/search/search_filter.dart';
 import 'package:all_in_one/util/log_utils.dart';
-import 'package:all_in_one/widgets/pixiv_image.dart';
+import 'package:all_in_one/component/pixiv_image.dart';
 import 'package:all_in_one/widgets/sliver/loading_more_sliver.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
@@ -126,6 +127,7 @@ class _SearchPageState extends State<SearchPage> {
     super.initState();
     apiClient = ApiClient();
     trendTagsFuture = apiClient.getIllustTrendTags();
+    searchConfig = SearchConfig.defaultConfig();
   }
 
   @override
@@ -285,7 +287,10 @@ class _SearchPageState extends State<SearchPage> {
         return AnimatedOpacity(
           duration: kMoveDuration,
           opacity: isFocus ? kVisiable : kInvisiable,
-          child: child,
+          child: ColoredBox(
+            color: Colors.white,
+            child: child,
+          ),
         );
       },
       child: cur,
@@ -608,11 +613,7 @@ class _WaterFallFlowSearchIllustResultState
         ((context, index) {
           currentBuildIndex = index;
           debugPrint(index.toString());
-          return PixivImage(
-            url: result[index].imageUrls!.squareMedium!,
-            height: 200,
-            fit: BoxFit.cover,
-          );
+          return IllustCard(illust: result[index]);
         }),
         childCount: targetBuildIndex,
       ),

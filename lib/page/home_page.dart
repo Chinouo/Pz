@@ -15,7 +15,6 @@ import 'package:all_in_one/provider/illust_rank_provider.dart';
 import 'package:all_in_one/provider/pivision_provider.dart';
 import 'package:all_in_one/provider/recommand_illust_provider.dart';
 import 'package:all_in_one/provider/trend_tag_provider.dart';
-import 'package:all_in_one/widgets/custom_appbar.dart';
 import 'package:all_in_one/widgets/lazy_indexed_stack.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -126,8 +125,7 @@ class _MyHomePageState extends State<MyHomePage> {
       for (var item in list) {
         result.add(Illust.fromJson(item));
       }
-      Provider.of<IllustProvider>(context, listen: false)
-          .addillustFromList(result);
+      Provider.of<IllustProvider>(context, listen: false).addillustFromList(result);
       // 把数据返回给Provider
     });
     api.getRecommend().then((Response response) =>
@@ -139,8 +137,7 @@ class _MyHomePageState extends State<MyHomePage> {
       for (var item in list) {
         result.add(SpotlightArticle.fromJson(item));
       }
-      Provider.of<PixivsionProvider>(context, listen: false)
-          .addillustFromList(result);
+      Provider.of<PixivsionProvider>(context, listen: false).addillustFromList(result);
     });
 
     api.getIllustTrendTags().then((Response response) =>
