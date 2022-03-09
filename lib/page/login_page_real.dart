@@ -5,7 +5,7 @@ import 'package:all_in_one/api/oauth.dart';
 import 'package:all_in_one/constant/constant.dart';
 import 'package:all_in_one/constant/hive_boxes.dart';
 import 'package:all_in_one/models/models.dart';
-import 'package:all_in_one/page/search_page.dart';
+import 'package:all_in_one/page/search/search_page.dart';
 import 'package:all_in_one/util/crypto_plugin.dart';
 import 'package:all_in_one/widgets/b2t_cupertino_route.dart';
 import 'package:dio/dio.dart';
@@ -14,7 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:provider/provider.dart';
 
-import 'cupertino_search_page.dart';
+import 'search/cupertino_search_page.dart';
 
 class LoginEntry extends StatefulWidget {
   LoginEntry({Key? key}) : super(key: key);
@@ -70,7 +70,7 @@ class _LoginEntryState extends State<LoginEntry> {
             MaterialButton(
               onPressed: () async {
                 Navigator.push(context, MaterialPageRoute(builder: ((context) {
-                  return CupertinoPageRouteTemplate();
+                  return SearchPage();
                 })));
               },
               child: Text("Test Entry"),

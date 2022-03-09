@@ -1,0 +1,16 @@
+{
+    "language": "English",
+    "@language": {
+        "description": "Which Language use this arb file"
+    },
+
+    "searchTarget": "Target",
+    "partial_match_for_tags": "Partial Match",
+    "exact_match_for_tags": "Exact Match",
+    "title_and_caption": "Title & Caption",
+
+    "searchSort": "Sort",
+    "date_desc": "Date Desc",
+    "date_asc": "Date Asc",
+    "popular_desc": "Popular Desc"
+}

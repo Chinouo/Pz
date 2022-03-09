@@ -1,9 +1,10 @@
 import 'dart:math';
 import 'package:all_in_one/api/api_client.dart';
+import 'package:all_in_one/constant/search_config.dart';
 import 'package:all_in_one/models/illust/illust.dart';
 import 'package:all_in_one/models/illust/tag.dart';
 import 'package:all_in_one/models/trend_tag/trend_tag.dart';
-import 'package:all_in_one/page/search_page.dart';
+import 'package:all_in_one/page/search/search_filter.dart';
 import 'package:all_in_one/util/log_utils.dart';
 import 'package:all_in_one/widgets/pixiv_image.dart';
 import 'package:all_in_one/widgets/sliver/loading_more_sliver.dart';
@@ -11,7 +12,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:provider/provider.dart';
 import 'package:waterfall_flow/waterfall_flow.dart';
 
 const Duration kMoveDuration = Duration(milliseconds: 200);
@@ -35,31 +35,6 @@ enum ComponentId {
   tagGridView,
   searchResultView,
 }
-
-const List<int> stared = <int>[
-  0,
-  100,
-  250,
-  500,
-  1000,
-  5000,
-  10000,
-  20000,
-  30000,
-  50000,
-];
-
-const List<String> sort = <String>[
-  "date_desc",
-  "date_asc",
-  "popular_desc",
-];
-
-const List<String> searchTarget_1 = [
-  "partial_match_for_tags",
-  "exact_match_for_tags",
-  "title_and_caption",
-];
 
 class SearchPageLayoutDelegate extends MultiChildLayoutDelegate {
   SearchPageLayoutDelegate({
@@ -96,146 +71,15 @@ class SearchPageLayoutDelegate extends MultiChildLayoutDelegate {
   }
 }
 
-//
-class CupertinoPageRouteTemplate extends StatefulWidget {
-  const CupertinoPageRouteTemplate({Key? key}) : super(key: key);
-
-  @override
-  _CupertinoPageRouteTemplateState createState() =>
-      _CupertinoPageRouteTemplateState();
-}
-
-class _CupertinoPageRouteTemplateState extends State<CupertinoPageRouteTemplate>
-    with SingleTickerProviderStateMixin {
-  double appBarHeight = 210;
-
-  @override
-  Widget build(BuildContext context) {
-    return SearchPage(
-      f: f,
-    );
-    // return Stack(
-    //   fit: StackFit.passthrough,
-    //   children: [
-    //     _buildScrollView(),
-    //     buildStickyTopSearchBar(),
-    //     _buildResultLayer()
-    //   ],
-    // );
-  }
-
-  bool isFocus = false;
-
-  double shrinkHeight = 200;
-
-  double expandHeight = 300;
-
-  // 不用persistent 是因为对其内部 size变换动画 不熟悉
-  Widget buildStickyTopSearchBar() {
-    return Positioned(
-        top: 0,
-        child: AnimatedContainer(
-          duration: Duration(seconds: 1),
-          color: Colors.red.withOpacity(0.1),
-          height: appBarHeight + MediaQuery.of(context).viewPadding.top,
-          width: MediaQuery.of(context).size.width,
-          child: MaterialButton(
-            onPressed: () {
-              setState(() {
-                if (appBarHeight == 210) {
-                  appBarHeight = 150;
-                } else {
-                  appBarHeight = 210;
-                }
-                isFocus = !isFocus;
-              });
-            },
-            child: Text("Click Me!"),
-          ),
-        ));
-  }
-
-  Widget _buildScrollView() {
-    return CustomScrollView(
-      slivers: [
-        SliverToBoxAdapter(
-          child: AnimatedContainer(
-            color: Colors.grey.withOpacity(0.5),
-            duration: const Duration(seconds: 1),
-            height: appBarHeight,
-          ),
-        ),
-        // SliverPersistentHeader(
-        //     floating: true,
-        //     pinned: true,
-        //     delegate: TitlePersistHeader(
-        //         vsync: this,
-        //         shrinkHeight: shrinkHeight,
-        //         stretchhHeight: expandHeight,
-        //         parentStateTicker: this,
-        //         parentSetState: () {
-        //           setState(() {
-        //             expandHeight = 100;
-        //             shrinkHeight = 100;
-        //           });
-        //         })),
-        // SliverAnimatedPersistentHeaderWidget(
-        //   child: AnimatedContainer(
-        //     color: Colors.green,
-        //     height: 100,
-        //     duration: Duration(seconds: 1),
-        //   ),
-        // ),
-        SliverList(
-            delegate: SliverChildBuilderDelegate(
-          ((context, index) {
-            return Container(
-              color: Colors.primaries[index % 18],
-              height: 200,
-            );
-          }),
-          childCount: 20,
-        ))
-      ],
-    );
-  }
-
-  Future<List<int>> f = fakeFuture();
-
-  double _searchTextfieldAligment = 0.0;
-  Widget _buildSearchText() {
-    return AnimatedAlign(
-        alignment: Alignment(0, _searchTextfieldAligment),
-        duration: const Duration(milliseconds: 200));
-  }
-
-  double _searchListOpacity = 1.0;
-
-  double _appBarExtent = 200.0;
-  Widget _buildGridTag() {
-    return AnimatedOpacity(
-      duration: const Duration(milliseconds: 200),
-      opacity: _searchListOpacity,
-      child: CustomScrollView(
-        slivers: [
-          SliverPadding(
-            padding: EdgeInsets.only(top: _appBarExtent),
-          )
-        ],
-      ),
-    );
-  }
-}
-
 const double kShrinkSearchBarHeight = 100.0;
 
 const double kStrengthSearchBarHeight = 300.0;
 
 ///
 class SearchPage extends StatefulWidget {
-  final Future<List<int>> f;
-
-  const SearchPage({Key? key, required this.f}) : super(key: key);
+  const SearchPage({
+    Key? key,
+  }) : super(key: key);
 
   @override
   _SearchPageState createState() => _SearchPageState();
@@ -258,12 +102,24 @@ class _SearchPageState extends State<SearchPage> {
 
   final autofillFuture = ValueNotifier<Future<Response>?>(null);
 
-  /// Whether to demonstrate view under search textfiels.
-  bool shouldDisplaySearchView = false;
-
   late ApiClient apiClient;
 
-  late Future<Response> trendTagsFuture;
+  Future<Response>? trendTagsFuture;
+
+  bool isSubmit = false;
+
+  Future<Response?>? searchResultFuture;
+
+  final autofillWords = <Tag>[];
+
+  final trendTags = <TrendTag>[];
+
+  TextEditingController textEditingController = TextEditingController();
+
+  FocusNode focusNode = FocusNode();
+
+  // TODO: Get Config from HiveBox
+  late SearchConfig searchConfig;
 
   @override
   void initState() {
@@ -279,13 +135,7 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("Call Outter build");
-
     return LayoutBuilder(builder: (context, constraints) {
-      debugPrint(constraints.toString());
-      final appBarWidth = MediaQuery.of(context).size.width;
-      final appBarHeight =
-          MediaQuery.of(context).viewPadding.top + searchBarHeight;
       final appBarConstraints = constraints.loosen();
       return CustomMultiChildLayout(
         delegate: SearchPageLayoutDelegate(
@@ -293,27 +143,15 @@ class _SearchPageState extends State<SearchPage> {
           stackConstraint: constraints,
         ),
         children: <Widget>[
-          _buildTagGridView(),
-          _buildSearchResult(),
-          _buildSearchBar(context),
+          _buildTrendTagsView(),
+          _buildOnFocusView(),
+          _buildSearchBar(),
         ],
       );
     });
   }
 
-  double resultOpacity = 0.0;
-
-  TextEditingController textEditingController = TextEditingController();
-
-  FocusNode focusNode = FocusNode();
-
-  Alignment searchTextAligment = kSearchTextFieldUnFocusAligment;
-
-  double segOpacity = kInvisiable;
-
-  Future<List<int>> f = fakeFuture();
-
-  Widget _buildSearchBar(BuildContext context) {
+  Widget _buildSearchBar() {
     final searchTextField = CupertinoSearchTextField(
       controller: textEditingController,
       focusNode: focusNode,
@@ -334,12 +172,17 @@ class _SearchPageState extends State<SearchPage> {
         // Todo: Fetch IllustResult and build WaterFallFlow list.
         searchContentID.value = kResultId;
         var apiClient = ApiClient();
-        searchResultFuture = apiClient.getSearchIllust(words,
-            sort: sort[0], search_target: searchTarget_1[0]);
+        searchResultFuture = apiClient.getSearchIllust(words, searchConfig);
       },
     );
 
-    const filter = Icon(Icons.filter_3_outlined);
+    final filter = MaterialButton(onPressed: () {
+      showCupertinoModalPopup(
+          context: context,
+          builder: (context) {
+            return Filter(config: SearchConfig.defaultConfig());
+          });
+    });
 
     final searchBar = Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -353,20 +196,14 @@ class _SearchPageState extends State<SearchPage> {
                 focusNode.unfocus();
                 focus.value = false;
                 searchContentID.value = kHistoryId;
-                //To do: May need handle future.
+                //To do: May need handle cancel future.
               },
-              child: Text("Cancle"),
+              child: const Text("Cancle"),
             ),
           ],
         ));
 
     final size = MediaQuery.of(context).size;
-
-    // like SafeArea
-    final viewPaddingTopBox = SizedBox(
-      height: MediaQuery.of(context).viewPadding.top,
-      width: size.width,
-    );
 
     // 搜索栏 和 搜索目标 Widget
     Widget result = ValueListenableBuilder<bool>(
@@ -411,217 +248,14 @@ class _SearchPageState extends State<SearchPage> {
       },
     );
 
-    //
-    final searchTarget = AnimatedOpacity(
-        opacity: kVisiable,
-        duration: kMoveDuration,
-        child: CupertinoSlidingSegmentedControl(
-          children: const {
-            "Illusts": Text("Illust"),
-            "Users": Text("Users"),
-          },
-          onValueChanged: (str) {
-            // Todo:
-          },
-        ));
-
-    final appBarWrap = Wrap(
-      children: [
-        viewPaddingTopBox,
-        result,
-      ],
-    );
-
     return LayoutId(
       id: ComponentId.searchAppBar,
       child: result,
     );
   }
 
-  final tagCollection = <Tag>[];
-
-  Widget _buildAutoFillWordsList() {
-    // 外层是关键词 里层是搜索结果
-    return ValueListenableBuilder<Future<Response>?>(
-      valueListenable: autofillFuture,
-      builder: (context, future, child) {
-        return FutureBuilder<Response>(
-            future: future,
-            builder: ((context, snapshot) {
-              if (snapshot.hasError) {
-                //return _buildFutureError(snapshot.error);
-              }
-              switch (snapshot.connectionState) {
-                case ConnectionState.none:
-                  debugPrint('-------ConnectionState.none---------');
-                  break;
-                case ConnectionState.waiting:
-                  return Center(
-                      child: CupertinoActivityIndicator(
-                    animating: true,
-                  ));
-                case ConnectionState.active:
-                  debugPrint('-------ConnectionState.active---------');
-                  break;
-                case ConnectionState.done:
-                  debugPrint(
-                      '-------ConnectionState.done---${snapshot.hasData}------');
-                  if (snapshot.hasData) {
-                    final data = snapshot.data?.data["tags"] ?? [];
-
-                    if (data.isEmpty) return const SizedBox.shrink();
-                    tagCollection.clear();
-                    for (var item in data) {
-                      tagCollection.add(Tag.fromJson(item));
-                    }
-
-                    return ColoredBox(
-                      key: UniqueKey(),
-                      color: Colors.red,
-                      child: CustomScrollView(
-                        physics: const BouncingScrollPhysics(),
-                        slivers: [
-                          _buildSliverFillAppBarBox(),
-                          SliverList(
-                              delegate:
-                                  SliverChildBuilderDelegate((context, index) {
-                            if (index % 2 == 0) {
-                              return Container(
-                                height: 70,
-                                color: Colors.primaries[index % 18],
-                                child: Center(
-                                    child:
-                                        Text("${tagCollection[index].name}")),
-                              );
-                            } else {
-                              return const Divider(
-                                height: 3,
-                                color: Colors.grey,
-                              );
-                            }
-                          }, childCount: tagCollection.length))
-                        ],
-                      ),
-                    );
-                  }
-                  break;
-              }
-
-              return const Center(
-                child: Text("An exception occure!"),
-              );
-            }));
-      },
-    );
-  }
-
-  Widget _buildTagGridView() {
-    return LayoutId(
-      id: ComponentId.tagGridView,
-      child: FutureBuilder<Response>(
-        builder: ((context, snapshot) {
-          if (snapshot.hasError) {
-            return _buildFutureError(snapshot.error);
-          }
-
-          switch (snapshot.connectionState) {
-            case ConnectionState.none:
-              debugPrint('-------ConnectionState.none---------');
-              break;
-            case ConnectionState.waiting:
-              return _buildLoading();
-            case ConnectionState.active:
-              debugPrint('-------ConnectionState.active---------');
-              break;
-            case ConnectionState.done:
-              debugPrint(
-                  '-------ConnectionState.done---${snapshot.hasData}------');
-              if (snapshot.hasData) {
-                return CustomScrollView(
-                  slivers: <Widget>[
-                    _buildSliverFillAppBarBox(),
-                    _buildTagsGridSliver(snapshot.data!)
-                  ],
-                );
-              }
-              break;
-          }
-
-          return const Center(
-            child: Text("An exception occure!"),
-          );
-        }),
-      ),
-    );
-  }
-
-  final trendTag = <TrendTag>[];
-
-  Future<Response?>? searchResultFuture;
-
-  Widget _buildTagsGridSliver(Response<dynamic> response) {
-    List list = response.data["trend_tags"] ?? [];
-    if (list.isEmpty) return const SliverToBoxAdapter();
-
-    trendTag.clear();
-    for (var item in list) {
-      trendTag.add(TrendTag.fromJson(item));
-    }
-
-    return SliverGrid(
-      delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          return Container(
-            color: Colors.primaries[index % 18],
-            child: Text("${trendTag[index].tag}"),
-          );
-        },
-        childCount: trendTag.length,
-      ),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-      ),
-    );
-  }
-
-  Widget _buildLoading() {
-    return const Center(
-      child: CupertinoActivityIndicator(
-        animating: true,
-      ),
-    );
-  }
-
-  Widget _buildFutureError(Object? error) {
-    return Center(
-      child: Text("A network error occuer! \n Error:$error"),
-    );
-  }
-
-  // 一个sliver 填充 appbar 的高度
-  Widget _buildSliverFillAppBarBox() {
-    return SliverToBoxAdapter(
-      child: AnimatedContainer(
-        duration: const Duration(
-          milliseconds: 200,
-        ),
-        height: kShrinkSearchBarHeight,
-      ),
-    );
-  }
-
-  bool isSubmit = false;
-
-  Key k1 = UniqueKey();
-  Key k2 = UniqueKey();
-
-  Widget _buildHistory() {
-    return Center(
-      child: Text("History"),
-    );
-  }
-
-  Widget _buildSearchResult() {
+  // 当文本框获得焦点时 根据不同行为构建相应的 widget
+  Widget _buildOnFocusView() {
     Widget cur = ValueListenableBuilder<String>(
       valueListenable: searchContentID,
       builder: (context, value, child) {
@@ -663,11 +297,175 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  final resultIllusts = <Illust>[];
+  // 自动补全词语 组件
+  Widget _buildAutoFillWordsList() {
+    // 外层是关键词 里层是搜索结果
+    return ValueListenableBuilder<Future<Response>?>(
+      valueListenable: autofillFuture,
+      builder: (context, future, child) {
+        return FutureBuilder<Response>(
+            future: future,
+            builder: ((context, snapshot) {
+              if (snapshot.hasError) {
+                //return _buildFutureError(snapshot.error);
+              }
+              switch (snapshot.connectionState) {
+                case ConnectionState.none:
+                  debugPrint('-------ConnectionState.none---------');
+                  break;
+                case ConnectionState.waiting:
+                  return const Center(
+                      child: CupertinoActivityIndicator(
+                    animating: true,
+                  ));
+                case ConnectionState.active:
+                  debugPrint('-------ConnectionState.active---------');
+                  break;
+                case ConnectionState.done:
+                  debugPrint('-------ConnectionState.done---${snapshot.hasData}------');
+                  if (snapshot.hasData) {
+                    final data = snapshot.data?.data["tags"] ?? [];
 
-  // 构建瀑布流， 构建成功返回 CustomScrollView
+                    if (data.isEmpty) return const SizedBox.shrink();
+                    autofillWords.clear();
+                    for (var item in data) {
+                      autofillWords.add(Tag.fromJson(item));
+                    }
+
+                    return ColoredBox(
+                      key: UniqueKey(),
+                      color: Colors.white,
+                      child: CustomScrollView(
+                        physics: const BouncingScrollPhysics(),
+                        slivers: [
+                          _buildSliverFillAppBarBox(),
+                          SliverList(
+                              delegate: SliverChildBuilderDelegate(
+                            (context, index) {
+                              if (index % 2 == 0) {
+                                return Container(
+                                  height: 30,
+                                  color: Colors.primaries[index % 18],
+                                  child: Text("${autofillWords[index].name}"),
+                                );
+                              } else {
+                                return const Divider(
+                                  height: 3,
+                                  color: Colors.grey,
+                                );
+                              }
+                            },
+                            childCount: autofillWords.length,
+                          ))
+                        ],
+                      ),
+                    );
+                  }
+                  break;
+              }
+
+              return const Center(
+                child: Text("An exception occure!"),
+              );
+            }));
+      },
+    );
+  }
+
+  // 搜索热度词 组件
+  Widget _buildTrendTagsView() {
+    return LayoutId(
+      id: ComponentId.tagGridView,
+      child: FutureBuilder<Response>(
+        future: trendTagsFuture,
+        builder: ((context, snapshot) {
+          if (snapshot.hasError) {
+            return _buildFutureError(snapshot.error);
+          }
+
+          switch (snapshot.connectionState) {
+            case ConnectionState.none:
+              debugPrint('-------ConnectionState.none---------');
+              break;
+            case ConnectionState.waiting:
+              return _buildLoading();
+            case ConnectionState.active:
+              debugPrint('-------ConnectionState.active---------');
+              break;
+            case ConnectionState.done:
+              debugPrint('-------ConnectionState.done---${snapshot.hasData}------');
+              if (snapshot.hasData) {
+                List list = snapshot.data?.data["trend_tags"] ?? [];
+                if (list.isEmpty) return const SliverToBoxAdapter();
+
+                trendTags.clear();
+                for (var item in list) {
+                  trendTags.add(TrendTag.fromJson(item));
+                }
+
+                final trendsTagsSliver = SliverGrid(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      return Container(
+                        color: Colors.primaries[index % 18],
+                        child: Text("${trendTags[index].tag}"),
+                      );
+                    },
+                    childCount: trendTags.length,
+                  ),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                  ),
+                );
+                return CustomScrollView(
+                  slivers: <Widget>[_buildSliverFillAppBarBox(), trendsTagsSliver],
+                );
+              }
+              break;
+          }
+
+          return const Center(
+            child: Text("An exception occure!"),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _buildLoading() {
+    return const Center(
+      child: CupertinoActivityIndicator(
+        animating: true,
+      ),
+    );
+  }
+
+  Widget _buildFutureError(Object? error) {
+    return Center(
+      child: Text("A network error occuer! \n Error:$error"),
+    );
+  }
+
+  // 一个sliver 填充 appbar 的高度
+  Widget _buildSliverFillAppBarBox() {
+    return SliverToBoxAdapter(
+      child: AnimatedContainer(
+        duration: const Duration(
+          milliseconds: 200,
+        ),
+        height: kShrinkSearchBarHeight,
+      ),
+    );
+  }
+
+  // 搜索历史组件
+  Widget _buildHistory() {
+    return const SearchHistoryView();
+  }
+
+  // 构建瀑布流组件
   Widget _buildWaterFallView() {
-    final res = FutureBuilder<Response?>(
+    return FutureBuilder<Response?>(
         future: searchResultFuture,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
@@ -684,12 +482,13 @@ class _SearchPageState extends State<SearchPage> {
               debugPrint('-------ConnectionState.active---------');
               break;
             case ConnectionState.done:
-              debugPrint(
-                  '-------ConnectionState.done---${snapshot.hasData}------');
+              debugPrint('-------ConnectionState.done---${snapshot.hasData}------');
               if (snapshot.hasData) {
+                // 当有搜索结果的时候 把数据处理
+                // 并给 WaterFallFlowSearchIllustResult 保存管理
                 List list = snapshot.data?.data["illusts"] ?? [];
                 if (list.isEmpty) return const SliverToBoxAdapter();
-                resultIllusts.clear();
+
                 List<Illust> initialData = <Illust>[];
                 for (var item in list) {
                   initialData.add(Illust.fromJson(item));
@@ -708,8 +507,6 @@ class _SearchPageState extends State<SearchPage> {
             child: Text("An exception occure!"),
           );
         });
-
-    return res;
   }
 }
 
@@ -761,13 +558,8 @@ class _SearchContentState extends State<SearchContent> {
   }
 }
 
-var fakeFuture = () {
-  return Future.delayed(Duration(seconds: 5), () {
-    return List.generate(100, (index) => index * Random().nextInt(10));
-  });
-};
-
-// 瀑布流的搜索结果
+/// 瀑布流的搜索结果组件
+/// 使用自己写的 LoadingMore 组件
 class WaterFallFlowSearchIllustResult extends StatefulWidget {
   const WaterFallFlowSearchIllustResult({
     Key? key,
@@ -815,6 +607,7 @@ class _WaterFallFlowSearchIllustResultState
       delegate: SliverChildBuilderDelegate(
         ((context, index) {
           currentBuildIndex = index;
+          debugPrint(index.toString());
           return PixivImage(
             url: result[index].imageUrls!.squareMedium!,
             height: 200,
@@ -856,6 +649,8 @@ class _WaterFallFlowSearchIllustResultState
           for (var item in list) {
             result.add(Illust.fromJson(item));
           }
+          // 储存下一个Url
+          nextUrl = res.data["next_url"];
           // To avoid setState during build or layout.
           SchedulerBinding.instance!.addPostFrameCallback(((timeStamp) {
             setState(() {
@@ -880,5 +675,20 @@ class _WaterFallFlowSearchIllustResultState
         });
       }));
     }
+  }
+}
+
+/// 搜索历史 组件
+class SearchHistoryView extends StatefulWidget {
+  const SearchHistoryView({Key? key}) : super(key: key);
+
+  @override
+  State<SearchHistoryView> createState() => _SearchHistoryViewState();
+}
+
+class _SearchHistoryViewState extends State<SearchHistoryView> {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
   }
 }

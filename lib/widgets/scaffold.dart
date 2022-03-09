@@ -1,5 +1,6 @@
 import 'package:all_in_one/api/api_client.dart';
 import 'package:all_in_one/constant/constant.dart';
+import 'package:all_in_one/generated/l10n.dart';
 import 'package:all_in_one/models/illust/illust.dart';
 import 'package:all_in_one/models/spotlight_article.dart';
 import 'package:all_in_one/models/trend_tag/trend_tag.dart';
@@ -11,13 +12,11 @@ import 'package:all_in_one/provider/recommand_illust_provider.dart';
 import 'package:all_in_one/provider/trend_tag_provider.dart';
 import 'package:all_in_one/screen_fit/media_query_wrap.dart';
 import 'package:all_in_one/widgets/b2t_cupertino_route.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -34,8 +33,6 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint(AppLocalizations.supportedLocales.toString());
-
     //透明化状态栏
     if (Theme.of(context).platform == TargetPlatform.android) {
       SystemChrome.setSystemUIOverlayStyle(
@@ -53,18 +50,19 @@ class _MyAppState extends State<MyApp> {
             },
           );
         },
-        locale: const Locale.fromSubtags(
-            languageCode: 'zh', scriptCode: 'Hant'), //更改此项  来修改语言
         title: 'Localizations Sample App',
         theme: ThemeData(
           brightness: Brightness.light,
         ),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
+        localizationsDelegates: const [
+          ...GlobalMaterialLocalizations.delegates,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          S.delegate,
+        ],
+        supportedLocales: S.delegate.supportedLocales,
         initialRoute: Constant.isLogged ? '/home' : '/login',
-        onGenerateInitialRoutes: (initialRoute) =>
-            _handleInitialRoute(initialRoute),
-
+        onGenerateInitialRoutes: (initialRoute) => _handleInitialRoute(initialRoute),
         onGenerateRoute: (settings) => _handleCustomRoute(settings),
       ),
     );
@@ -111,12 +109,9 @@ class _MyAppState extends State<MyApp> {
   List<SingleChildWidget> _buildProviders() {
     return <SingleChildWidget>[
       ChangeNotifierProvider<IllustProvider>(create: (_) => IllustProvider()),
-      ChangeNotifierProvider<RecommandProvider>(
-          create: (_) => RecommandProvider()),
-      ChangeNotifierProvider<PixivsionProvider>(
-          create: (_) => PixivsionProvider()),
-      ChangeNotifierProvider<TrendTagProvider>(
-          create: (_) => TrendTagProvider())
+      ChangeNotifierProvider<RecommandProvider>(create: (_) => RecommandProvider()),
+      ChangeNotifierProvider<PixivsionProvider>(create: (_) => PixivsionProvider()),
+      ChangeNotifierProvider<TrendTagProvider>(create: (_) => TrendTagProvider())
     ];
   }
 }

@@ -1,0 +1,15 @@
+{
+    "language": "简体中文",
+    "@language": {
+        "description": "Which Language use this arb file"
+    },
+    "searchTarget": "标签匹配",
+    "partial_match_for_tags": "部分匹配",
+    "exact_match_for_tags": "精确匹配",
+    "title_and_caption": "摘要匹配",
+
+    "searchSort": "排序方式",
+    "date_desc": "日期降序",
+    "date_asc": "日期升序",
+    "popular_desc": "热度降序"
+}

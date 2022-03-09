@@ -7,8 +7,9 @@ import 'package:all_in_one/api/api_client.dart';
 import 'package:all_in_one/models/illust/illust.dart';
 import 'package:all_in_one/models/models.dart';
 import 'package:all_in_one/models/spotlight_article.dart';
+import 'package:all_in_one/page/search/cupertino_search_page.dart';
 import 'package:all_in_one/page/ranking_page.dart';
-import 'package:all_in_one/page/search_page.dart';
+import 'package:all_in_one/page/search/search_page.dart';
 import 'package:all_in_one/page/user_setting_page.dart';
 import 'package:all_in_one/provider/illust_rank_provider.dart';
 import 'package:all_in_one/provider/pivision_provider.dart';
@@ -21,7 +22,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
 
-import 'cupertino_search_page.dart' hide SearchPage;
+import 'search/cupertino_search_page.dart' hide SearchPage;
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key}) : super(key: key);
@@ -48,12 +49,12 @@ class _MyHomePageState extends State<MyHomePage> {
         index: _currentIndex,
         children: [
           RankingPage(),
-          CupertinoPageRouteTemplate(),
+          SearchPage(),
           //SliverContent(),
           //LoginTemplate(),
           //ShowAccountPage(),
           //LoginPage(),
-          SearchPage(),
+          SearchPageOld(),
           SettingPage(),
           // Placeholder()
         ],

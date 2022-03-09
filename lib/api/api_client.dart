@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:all_in_one/api/oauth.dart';
 import 'package:all_in_one/constant/hive_boxes.dart';
+import 'package:all_in_one/constant/search_config.dart';
 import 'package:all_in_one/models/models.dart';
 import 'package:dio/adapter.dart';
 import 'package:flutter/material.dart';
@@ -135,29 +136,19 @@ class ApiClient {
   }
 
   // 搜索插画  见result_illust_list.dart
-  Future<Response> getSearchIllust(String word,
-      {String? sort,
-      String? search_target,
-      DateTime? start_date,
-      DateTime? end_date,
-      int? bookmark_num}) async {
-    String? queryStartDate;
-    String? queryEndDate;
-    if (start_date != null) {
-      queryStartDate = Util.formaDate(start_date);
-    }
-    if (end_date != null) {
-      queryEndDate = Util.formaDate(end_date);
-    }
+  Future<Response> getSearchIllust(String word, SearchConfig config) async {
+    String queryStartDate = Util.formaDate(config.startDate);
+    String queryEndDate = Util.formaDate(config.endDate);
+
     return httpClient.get(
         "/v1/search/illust?filter=for_android&merge_plain_keyword_results=true",
         queryParameters: {
-          "sort": sort,
-          "search_target": search_target,
+          "sort": config.sort,
+          "search_target": config.target,
           "start_date": queryStartDate,
           "end_date": queryEndDate,
-          "bookmark_num": bookmark_num,
-          "word": word
+          "bookmark_num": config.stared,
+          "word": word,
         });
   }
 

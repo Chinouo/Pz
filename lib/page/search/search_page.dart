@@ -40,14 +40,14 @@ const List<String> searchTarget = [
   "title_and_caption",
 ];
 
-class SearchPage extends StatefulWidget {
-  const SearchPage({Key? key}) : super(key: key);
+class SearchPageOld extends StatefulWidget {
+  const SearchPageOld({Key? key}) : super(key: key);
 
   @override
-  _SearchPageState createState() => _SearchPageState();
+  _SearchPageOldState createState() => _SearchPageOldState();
 }
 
-class _SearchPageState extends State<SearchPage> {
+class _SearchPageOldState extends State<SearchPageOld> {
   @override
   void initState() {
     super.initState();
@@ -304,7 +304,7 @@ class _SearchResultState extends State<SearchResult> {
                       },
                       onSubmitted: (value) async {
                         // 点击搜索
-                        api.getSearchIllust(value);
+                        //api.getSearchIllust(value);
                         result = "in query ...";
                         setState(() {});
                       },
