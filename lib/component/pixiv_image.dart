@@ -3,20 +3,23 @@ import 'package:flutter/widgets.dart';
 import 'package:extended_image/extended_image.dart';
 
 class PixivImage extends StatelessWidget {
-  const PixivImage(
-      {Key? key,
-      required this.url,
-      this.placeholder,
-      this.width,
-      this.height,
-      this.fit = BoxFit.fitWidth})
-      : super(key: key);
+  const PixivImage({
+    Key? key,
+    required this.url,
+    this.placeholder,
+    this.width,
+    this.height,
+    this.fit = BoxFit.fitWidth,
+    this.borderRadius,
+  }) : super(key: key);
 
   final String url;
   final Widget? placeholder;
   final double? width;
   final double? height;
   final BoxFit fit;
+
+  final BorderRadius? borderRadius;
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +29,8 @@ class PixivImage extends StatelessWidget {
       height: height,
       headers: header,
       fit: fit,
+      borderRadius: borderRadius,
+      shape: BoxShape.rectangle,
     );
   }
 

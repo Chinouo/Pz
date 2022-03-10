@@ -29,6 +29,7 @@ class IllustCard extends StatelessWidget {
     final title = Text("${illust.title}");
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AspectRatio(
           aspectRatio: width / height,
