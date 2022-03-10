@@ -20,8 +20,7 @@ const double _kDefaultMaxLayoutExtend = 200.0;
 
 const double _kDefaultTriggerDistance = 100.0;
 
-class LoadingMoreSliverWithRefreshHandleDelegete
-    extends LoadingMoreSliverDelegate {
+class LoadingMoreSliverWithRefreshHandleDelegete extends LoadingMoreSliverDelegate {
   LoadingMoreSliverWithRefreshHandleDelegete({
     this.onRefresh,
     double maxLayoutExtent = 0,
@@ -78,8 +77,7 @@ class LoadingMoreSliverWithRefreshHandleDelegete
         child: Center(child: Text("已触发")),
       );
     } else {
-      final percentage =
-          overscrolled.clamp(0, triggerDistance) / triggerDistance;
+      final percentage = overscrolled.clamp(0, triggerDistance) / triggerDistance;
       // build widget which not triggered.
       return Center(
         child: CupertinoActivityIndicator.partiallyRevealed(
@@ -128,12 +126,10 @@ class _LoadingMoreBottomSliver extends RenderObjectWidget {
 }
 
 class _LoadingMoreBottomSliverElement extends RenderObjectElement {
-  _LoadingMoreBottomSliverElement(_LoadingMoreBottomSliver widget)
-      : super(widget);
+  _LoadingMoreBottomSliverElement(_LoadingMoreBottomSliver widget) : super(widget);
 
   @override
-  _LoadingMoreBottomSliver get widget =>
-      super.widget as _LoadingMoreBottomSliver;
+  _LoadingMoreBottomSliver get widget => super.widget as _LoadingMoreBottomSliver;
 
   @override
   _RenderLoadingMoreSliver get renderObject =>
@@ -240,13 +236,12 @@ class _RenderLoadingMoreSliver extends RenderSliver
         constraints.precedingScrollExtent - constraints.viewportMainAxisExtent;
 
     // the total overscrolled area in viewport.
-    double maxExtent =
-        constraints.remainingPaintExtent - min(constraints.overlap, 0.0);
+    double maxExtent = constraints.remainingPaintExtent - min(constraints.overlap, 0.0);
 
     if (extent <= 0) {
       // we offer overscrolled 0 to builder, but the constraint to passed to
-      // child still the remainingPaintExtent. you can use constraint to custom
-      // what you want.
+      // child still the remainingPaintExtent. you can use this constraint
+      //to custom what you want.
       overscrolled = 0;
       invokeLayoutCallback((constraints) {
         updateChild();
