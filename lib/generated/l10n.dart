@@ -55,7 +55,7 @@ class S {
     return Intl.message(
       'English',
       name: 'language',
-      desc: 'Which Language use this arb file',
+      desc: 'Which Language use this arb file.',
       args: [],
     );
   }
@@ -135,6 +135,46 @@ class S {
     return Intl.message(
       'Popular Desc',
       name: 'popular_desc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Today`
+  String get today {
+    return Intl.message(
+      'Today',
+      name: 'today',
+      desc: 'Home Page Title.',
+      args: [],
+    );
+  }
+
+  /// `Ranking`
+  String get ranking {
+    return Intl.message(
+      'Ranking',
+      name: 'ranking',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Pivision`
+  String get pixvision {
+    return Intl.message(
+      'Pivision',
+      name: 'pixvision',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Recommend`
+  String get recommend {
+    return Intl.message(
+      'Recommend',
+      name: 'recommend',
       desc: '',
       args: [],
     );

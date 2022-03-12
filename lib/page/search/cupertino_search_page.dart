@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:all_in_one/api/api_client.dart';
 import 'package:all_in_one/component/illust_card.dart';
+import 'package:all_in_one/component/sliver/loading_more.dart';
 import 'package:all_in_one/constant/search_config.dart';
 import 'package:all_in_one/models/illust/illust.dart';
 import 'package:all_in_one/models/illust/tag.dart';
@@ -8,7 +9,6 @@ import 'package:all_in_one/models/trend_tag/trend_tag.dart';
 import 'package:all_in_one/page/search/search_filter.dart';
 import 'package:all_in_one/util/log_utils.dart';
 import 'package:all_in_one/component/pixiv_image.dart';
-import 'package:all_in_one/widgets/sliver/loading_more_sliver.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -627,12 +627,7 @@ class _WaterFallFlowSearchIllustResultState
       slivers: <Widget>[
         //_buildSliverFillAppBarBox(),
         waterfallSliver,
-        LoadingMoreSliver(
-            delegate: LoadingMoreSliverWithRefreshHandleDelegete(
-          maxLayoutExtent: 200,
-          triggerDistance: 100,
-          onRefresh: _handleLazyLoad,
-        ))
+        LoadingMoreSliver()
       ],
     );
   }

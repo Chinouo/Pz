@@ -11,5 +11,15 @@
     "searchSort": "排序方式",
     "date_desc": "日期降序",
     "date_asc": "日期升序",
-    "popular_desc": "热度降序"
+    "popular_desc": "热度降序",
+
+    "today":"今日",
+    "@today": {
+        "description": "主页的标题."
+    },
+
+    "ranking" : "排行",
+    "pixvision" : "Pivision",
+    "recommend" : "推荐"
+
 }

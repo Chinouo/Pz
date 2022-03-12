@@ -1,7 +1,7 @@
 {
     "language": "English",
     "@language": {
-        "description": "Which Language use this arb file"
+        "description": "Which Language use this arb file."
     },
 
     "searchTarget": "Target",
@@ -12,5 +12,15 @@
     "searchSort": "Sort",
     "date_desc": "Date Desc",
     "date_asc": "Date Asc",
-    "popular_desc": "Popular Desc"
+    "popular_desc": "Popular Desc",
+
+    "today":"Today",
+    "@today": {
+        "description": "Home Page Title."
+    },
+
+    "ranking" : "Ranking",
+    "pixvision" : "Pivision",
+    "recommend" : "Recommend"
+
 }

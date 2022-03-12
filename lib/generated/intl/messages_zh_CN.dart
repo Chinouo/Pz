@@ -27,9 +27,13 @@ class MessageLookup extends MessageLookupByLibrary {
         "exact_match_for_tags": MessageLookupByLibrary.simpleMessage("精确匹配"),
         "language": MessageLookupByLibrary.simpleMessage("简体中文"),
         "partial_match_for_tags": MessageLookupByLibrary.simpleMessage("部分匹配"),
+        "pixvision": MessageLookupByLibrary.simpleMessage("Pivision"),
         "popular_desc": MessageLookupByLibrary.simpleMessage("热度降序"),
+        "ranking": MessageLookupByLibrary.simpleMessage("排行"),
+        "recommend": MessageLookupByLibrary.simpleMessage("推荐"),
         "searchSort": MessageLookupByLibrary.simpleMessage("排序方式"),
         "searchTarget": MessageLookupByLibrary.simpleMessage("标签匹配"),
-        "title_and_caption": MessageLookupByLibrary.simpleMessage("摘要匹配")
+        "title_and_caption": MessageLookupByLibrary.simpleMessage("摘要匹配"),
+        "today": MessageLookupByLibrary.simpleMessage("今日")
       };
 }

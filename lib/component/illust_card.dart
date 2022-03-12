@@ -4,12 +4,11 @@ import 'package:flutter/widgets.dart';
 
 const goldenRatio = 0.6180339887989484820458683436564;
 
-/// Api jpg offer two aspect ratios.
+/// Api thumbnail offer two aspect ratios.
 /// 360 x 360 or 540 x 540 , ratio = 1.
 /// 600 x 1200, ratio = 2.
 
-/// If height is much bigger than width, this card height will be two times of
-/// width, otherwise ratio is set to 1.
+/// If height is  bigger than width, use ratio
 class IllustCard extends StatelessWidget {
   const IllustCard({
     Key? key,
@@ -24,12 +23,11 @@ class IllustCard extends StatelessWidget {
     final height = illust.height!.toDouble();
     final width = illust.width!.toDouble();
 
-    bool isLongImg = height / width >= 2 ? true : false;
+    bool isLongImg = height / width > 1 ? true : false;
 
     final title = Text("${illust.title}");
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AspectRatio(
           aspectRatio: width / height,
@@ -37,7 +35,7 @@ class IllustCard extends StatelessWidget {
             url: isLongImg ? illust.imageUrls!.large! : illust.imageUrls!.squareMedium!,
             width: width,
             height: height,
-            fit: isLongImg ? BoxFit.fitHeight : BoxFit.fitWidth,
+            fit: isLongImg ? BoxFit.fitHeight : BoxFit.cover,
           ),
         ),
         title

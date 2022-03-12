@@ -29,10 +29,14 @@ class MessageLookup extends MessageLookupByLibrary {
         "language": MessageLookupByLibrary.simpleMessage("English"),
         "partial_match_for_tags":
             MessageLookupByLibrary.simpleMessage("Partial Match"),
+        "pixvision": MessageLookupByLibrary.simpleMessage("Pivision"),
         "popular_desc": MessageLookupByLibrary.simpleMessage("Popular Desc"),
+        "ranking": MessageLookupByLibrary.simpleMessage("Ranking"),
+        "recommend": MessageLookupByLibrary.simpleMessage("Recommend"),
         "searchSort": MessageLookupByLibrary.simpleMessage("Sort"),
         "searchTarget": MessageLookupByLibrary.simpleMessage("Target"),
         "title_and_caption":
-            MessageLookupByLibrary.simpleMessage("Title & Caption")
+            MessageLookupByLibrary.simpleMessage("Title & Caption"),
+        "today": MessageLookupByLibrary.simpleMessage("Today")
       };
 }

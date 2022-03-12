@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:all_in_one/page/page_base.dart';
 import 'package:all_in_one/screen_fit/custom_binding.dart';
 import 'package:all_in_one/screen_fit/screen_fit_util.dart';
 import 'package:all_in_one/util/log_utils.dart';
