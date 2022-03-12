@@ -1,5 +1,4 @@
-import 'dart:html';
-
+import 'dart:io';
 import 'package:all_in_one/api/api_client.dart';
 import 'package:all_in_one/api/oauth.dart';
 import 'package:all_in_one/constant/hive_boxes.dart';
@@ -10,7 +9,9 @@ import 'package:flutter/material.dart';
 class TokenInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    debugPrint("'REQUEST[${options.method}] => PATH: ${options.path}'");
+    final userAccount = HiveBoxes.accountBox.get("myAccount")!;
+    final result = "Bearer " + userAccount.accessToken!;
+    options.headers["Authorization"] = result;
     return handler.next(options);
   }
 
@@ -26,7 +27,9 @@ class TokenInterceptor extends Interceptor {
   @override
   void onError(DioError err, ErrorInterceptorHandler handler) async {
     if (err.response?.statusCode == HttpStatus.badRequest) {
-      if (err.message.contains("OAUTH")) {
+      debugPrint(err.response?.data["error"]["message"].contains("OAuth").toString());
+      if (err.response?.data["error"]["message"].contains("OAuth")) {
+        // 见 Oauth_error.json 查看
         var apiClient = ApiClient();
 
         debugPrint("===== ApiClient Lock! =====");

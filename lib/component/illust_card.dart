@@ -28,14 +28,15 @@ class IllustCard extends StatelessWidget {
     final title = Text("${illust.title}");
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AspectRatio(
           aspectRatio: width / height,
           child: PixivImage(
-            url: isLongImg ? illust.imageUrls!.large! : illust.imageUrls!.squareMedium!,
+            url: illust.imageUrls!.large!,
             width: width,
             height: height,
-            fit: isLongImg ? BoxFit.fitHeight : BoxFit.cover,
+            fit: isLongImg ? BoxFit.fitHeight : BoxFit.fitWidth,
           ),
         ),
         title

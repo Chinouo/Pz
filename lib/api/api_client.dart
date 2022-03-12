@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:all_in_one/util/api_util.dart';
 
+import 'refresh_token_interceptor.dart';
+
 // 总是在使用 应该常驻内存
 class ApiClient {
   ApiClient._internal() {
@@ -45,33 +47,36 @@ class ApiClient {
         "App-Version": "5.0.166",
         "Host": BASE_API_URL_HOST
       }
-      ..interceptors.add(InterceptorsWrapper(onRequest:
-          (RequestOptions options, RequestInterceptorHandler handler) async {
-        Account userAccount = HiveBoxes.accountBox.get("myAccount")!;
-        String result = "Bearer " + userAccount.accessToken!;
-        options.headers["Authorization"] = result;
-        return handler.next(options);
-      }, onError: (DioError err, handler) async {
-        Account userAccount = HiveBoxes.accountBox.get("myAccount")!;
-        // TO DO: Lock
-        // 返回400 一般是accessToken过期了
-        if (err.response?.statusCode == 400) {
-          Response response = await OAuthClient()
-              .postRefreshAuthToken(refreshToken: userAccount.refreshToken!);
-          String? s1 = response.data["refresh_token"];
-          String? s2 = response.data["access_token"];
-          if (s1 != null && s2 != null) {
-            userAccount.refreshToken = s1;
-            userAccount.accessToken = s2;
-            HiveBoxes.accountBox.put("myAccount", userAccount);
-            debugPrint("Store two new Token");
-          }
-        }
-        debugPrint(err.toString());
-      }));
+      ..interceptors.add(
+        TokenInterceptor(),
+        //   InterceptorsWrapper(onRequest:
+        //     (RequestOptions options, RequestInterceptorHandler handler) async {
+        //   Account userAccount = HiveBoxes.accountBox.get("myAccount")!;
+        //   String result = "Bearer " + userAccount.accessToken!;
+        //   options.headers["Authorization"] = result;
+        //   return handler.next(options);
+        // }, onError: (DioError err, handler) async {
+        //   Account userAccount = HiveBoxes.accountBox.get("myAccount")!;
+        //   // TO DO: Lock
+        //   // 返回400 一般是accessToken过期了
+        //   if (err.response?.statusCode == 400) {
+        //     Response response = await OAuthClient()
+        //         .postRefreshAuthToken(refreshToken: userAccount.refreshToken!);
+        //     String? s1 = response.data["refresh_token"];
+        //     String? s2 = response.data["access_token"];
+        //     if (s1 != null && s2 != null) {
+        //       userAccount.refreshToken = s1;
+        //       userAccount.accessToken = s2;
+        //       HiveBoxes.accountBox.put("myAccount", userAccount);
+        //       debugPrint("Store two new Token");
+        //     }
+        //   }
+        //   debugPrint(err.toString());
+        // })
+      );
 
-    (httpClient.httpClientAdapter as DefaultHttpClientAdapter)
-        .onHttpClientCreate = (client) {
+    (httpClient.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
+        (client) {
       HttpClient httpClient = HttpClient();
       httpClient.badCertificateCallback =
           (X509Certificate cert, String host, int port) {
@@ -82,10 +87,8 @@ class ApiClient {
   }
 
   // 默认获取当日
-  Future<Response> getIllustRanking(
-      {String? mode = "day", String? date}) async {
-    return httpClient
-        .get("/v1/illust/ranking?filter=for_android", queryParameters: {
+  Future<Response> getIllustRanking({String? mode = "day", String? date}) async {
+    return httpClient.get("/v1/illust/ranking?filter=for_android", queryParameters: {
       "mode": mode,
       "date": date,
     });
@@ -111,14 +114,14 @@ class ApiClient {
 
   // 获得推荐的插画
   Future<Response> getRecommend() async {
-    return httpClient.get(
-        "/v1/illust/recommended?filter=for_ios&include_ranking_label=true");
+    return httpClient
+        .get("/v1/illust/recommended?filter=for_ios&include_ranking_label=true");
   }
 
   // 搜索用户 ？
   Future<Response> getSearchUser(String word) async {
-    return httpClient.get("/v1/search/user?filter=for_android",
-        queryParameters: {"word": word});
+    return httpClient
+        .get("/v1/search/user?filter=for_android", queryParameters: {"word": word});
   }
 
   // 推荐用户
