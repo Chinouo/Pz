@@ -4,8 +4,14 @@
 /// 搜索 illust 按照官方的来  显示tag
 /// 搜索 user 下面时推荐画师及其作品
 import 'package:all_in_one/api/api_client.dart';
+import 'package:all_in_one/component/lazy_indexed_stack.dart';
+import 'package:all_in_one/constant/search_config.dart';
 import 'package:all_in_one/models/illust/illust.dart';
 import 'package:all_in_one/models/illust/tag.dart';
+import 'package:all_in_one/page/search/search_filter.dart';
+import 'package:all_in_one/page/search/search_illust.dart';
+import 'package:all_in_one/page/search/search_user.dart';
+import 'package:all_in_one/provider/search_provider/illusts_search_provider.dart';
 import 'package:all_in_one/provider/trend_tag_provider.dart';
 import 'package:all_in_one/component/pixiv_image.dart';
 import 'package:dio/dio.dart';
@@ -39,6 +45,225 @@ const List<String> searchTarget = [
   "exact_match_for_tags",
   "title_and_caption",
 ];
+
+const Map<String, int> index2View = {
+  "illust": 0,
+  "user": 1,
+};
+
+enum ComponentId {
+  searchAppBar, // 顶部搜索
+  searchRecommendView, // 热门推荐标签
+  searchResultView, // 搜索结果
+  searchHistoryView, // 历史记录
+}
+
+const _kAppBarHeight = 188.0;
+
+class SearchPageLayoutDelegate extends MultiChildLayoutDelegate {
+  SearchPageLayoutDelegate({this.viewPaddingTop = 0});
+
+  final double viewPaddingTop;
+
+  @override
+  void performLayout(Size size) {
+    final viewConstraints = BoxConstraints.tight(size);
+    final appBarConstraints =
+        BoxConstraints.tight(Size(size.width, viewPaddingTop + _kAppBarHeight));
+
+    if (hasChild(ComponentId.searchAppBar)) {
+      layoutChild(ComponentId.searchAppBar, appBarConstraints);
+      positionChild(ComponentId.searchAppBar, Offset.zero);
+    }
+
+    if (hasChild(ComponentId.searchHistoryView)) {
+      layoutChild(ComponentId.searchHistoryView, viewConstraints);
+      positionChild(ComponentId.searchHistoryView, Offset.zero);
+    }
+
+    if (hasChild(ComponentId.searchResultView)) {
+      layoutChild(ComponentId.searchResultView, viewConstraints);
+      positionChild(ComponentId.searchResultView, Offset.zero);
+    }
+
+    if (hasChild(ComponentId.searchRecommendView)) {
+      layoutChild(ComponentId.searchRecommendView, viewConstraints);
+      positionChild(ComponentId.searchRecommendView, Offset.zero);
+    }
+  }
+
+  @override
+  bool shouldRelayout(SearchPageLayoutDelegate oldDelegate) {
+    return oldDelegate.viewPaddingTop != viewPaddingTop;
+  }
+}
+
+class SearchPage extends StatefulWidget {
+  const SearchPage({Key? key}) : super(key: key);
+
+  @override
+  State<SearchPage> createState() => _SearchPageState();
+}
+
+class _SearchPageState extends State<SearchPage> {
+  /// Illust or User
+  /// 影响 底部推荐 历史记录 自动补全 搜索结果
+  final selectedSearchTarget = ValueNotifier<int>(index2View["illust"]!);
+
+  /// 影响搜索结果
+  late final ValueNotifier<SearchConfig> filterData;
+
+  late final TextEditingController _textEditingController;
+
+  TextEditingController get textEditingController => _textEditingController;
+
+  final _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    filterData = ValueNotifier<SearchConfig>(SearchConfig.defaultConfig()); // ?? stored
+    _textEditingController = TextEditingController();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // 顶部搜索栏
+    final searchTextBar =
+        LayoutId(id: ComponentId.searchAppBar, child: buildSearchBar());
+
+    // 搜索历史容器
+    final queryHistoryBoxes = buildQueryHistoryBoxes();
+
+    // 搜索结果容器
+    final queryResultBox =
+        LayoutId(id: ComponentId.searchResultView, child: buildQueryResultBox());
+
+    final viewPaddingTop = MediaQuery.of(context).viewPadding.top;
+    return CustomMultiChildLayout(
+      delegate: SearchPageLayoutDelegate(
+        viewPaddingTop: viewPaddingTop,
+      ),
+      children: [
+        //queryHistoryBoxes, // IndexedStack  stateful
+        queryResultBox, //
+        searchTextBar, // Container
+      ],
+    );
+  }
+
+  Widget buildSearchBar() {
+    final searchTextField = SizedBox(
+        width: 300,
+        child: CupertinoSearchTextField(
+          controller: _textEditingController,
+          focusNode: _focusNode,
+          onTap: () {
+            // Todo: Shrink appbar and focus.
+          },
+          onSuffixTap: () {
+            textEditingController.clear();
+            //focusNode.unfocus();
+          },
+          onChanged: (words) {
+            // Todo: Fetch AutoFillWord and build relative text.
+          },
+          onSubmitted: (words) {
+            // Todo: Fetch IllustResult and build WaterFallFlow list.
+            Provider.of<IllustSearchResultProvider>(context, listen: false)
+                .updateResultView();
+          },
+        ));
+
+    final filter = MaterialButton(onPressed: () {
+      showCupertinoModalPopup(
+          context: context,
+          builder: (context) {
+            return Filter(config: SearchConfig.defaultConfig());
+          });
+    });
+
+    return Center(child: Row(children: [searchTextField, filter]));
+  }
+
+  Widget buildQueryHistoryBoxes() {
+    return ValueListenableBuilder<int>(
+      valueListenable: selectedSearchTarget,
+      builder: (context, index, child) {
+        return LazyIndexedStack(index: index, children: [
+          IllustQueryHistory(
+            textEditingController: textEditingController,
+          ),
+          UserQueryHistory(
+            textEditingController: textEditingController,
+          ),
+        ]);
+      },
+    );
+  }
+
+  Widget buildQueryResultBox() {
+    // only when submit is press, call this build.
+    // outter wrap
+    // inner wrap
+    final topPadding = _kAppBarHeight + MediaQuery.of(context).viewPadding.top;
+    return ValueListenableBuilder<int>(
+        valueListenable: selectedSearchTarget,
+        builder: (context, index, child) {
+          switch (index) {
+            case 0:
+              return Consumer<IllustSearchResultProvider>(
+                builder: (context, value, child) {
+                  return IllustResultView(
+                    paddingTop: topPadding,
+                    words: textEditingController.text,
+                    searchConfig: filterData.value,
+                  );
+                },
+              );
+            case 1:
+              return UserResultView();
+            default:
+              return const Center(child: Text("Internal Error!"));
+          }
+        });
+  }
+}
+
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
+///
 
 class SearchPageOld extends StatefulWidget {
   const SearchPageOld({Key? key}) : super(key: key);

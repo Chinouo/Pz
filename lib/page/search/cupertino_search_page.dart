@@ -627,7 +627,7 @@ class _WaterFallFlowSearchIllustResultState
       slivers: <Widget>[
         //_buildSliverFillAppBarBox(),
         waterfallSliver,
-        LoadingMoreSliver()
+        const LoadingMoreSliver()
       ],
     );
   }

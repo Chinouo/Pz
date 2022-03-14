@@ -47,8 +47,8 @@ class _LoadingMoreBottomSliverElement extends RenderObjectElement {
 
   @override
   void unmount() {
-    super.unmount();
     renderObject._element = null;
+    super.unmount();
   }
 
   @override
