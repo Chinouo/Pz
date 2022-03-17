@@ -82,13 +82,10 @@ class _FilterState extends State<Filter> {
           config.target = value ?? illustsSort[0];
         });
 
-    // final staredPicker = CupertinoPicker(
-    //     itemExtent: itemPickerHeight,
-    //     onSelectedItemChanged: (index) {},
-    //     children: <Widget>[for (int item in staredNum) Text("$item")]);
-
     final startDataPickerButtom = CupertinoButton(
-        child: Text("${config.startDate}"),
+        padding: EdgeInsets.all(2),
+        child: Text(
+            "${config.startDate.month}-${config.startDate.day}-${config.startDate.year}"),
         onPressed: () async {
           DateTime? selectorTime = await showCupertinoModalPopup<DateTime>(
               barrierDismissible: false,
@@ -113,7 +110,9 @@ class _FilterState extends State<Filter> {
     );
 
     final endDatePickerButtom = CupertinoButton(
-        child: Text("${config.endDate}"),
+        padding: EdgeInsets.all(2),
+        child: Text(
+            "${config.startDate.month}-${config.startDate.day}-${config.startDate.year}"),
         onPressed: () async {
           DateTime? selectorTime = await showCupertinoModalPopup<DateTime>(
               barrierDismissible: false,
@@ -139,31 +138,44 @@ class _FilterState extends State<Filter> {
 
     return Material(
       child: SafeArea(
+          top: false,
           child: SizedBox(
-        height: 360,
-        child: Column(
-          children: [
-            actions,
-            SizedBox(
-              width: size.width,
-              child: searchTargetSegment,
+            height: 360,
+            child: Wrap(
+              runSpacing: 20,
+              children: [
+                actions,
+                SizedBox(
+                  width: size.width,
+                  child: searchTargetSegment,
+                ),
+                SizedBox(
+                  width: size.width,
+                  child: illustsSortSegment,
+                ),
+                SizedBox(
+                  width: size.width,
+                  child: startDateResult,
+                ),
+                SizedBox(
+                  width: size.width,
+                  child: endDateResult,
+                ),
+              ],
             ),
-            SizedBox(
-              width: size.width,
-              child: illustsSortSegment,
-            ),
-            SizedBox(
-              width: size.width,
-              child: startDateResult,
-            ),
-            SizedBox(
-              width: size.width,
-              child: endDateResult,
-            ),
-          ],
-        ),
-      )),
+          )),
     );
+  }
+
+  // The start to end must within one year.
+  bool isVaildDate(DateTime? start, DateTime? end) {
+    if (start == null || end == null) return false;
+
+    final duration = start.difference(end);
+
+    if (duration.inDays > 365) return false;
+
+    return true;
   }
 }
 

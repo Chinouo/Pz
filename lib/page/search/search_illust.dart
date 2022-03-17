@@ -10,14 +10,22 @@ import 'package:all_in_one/models/trend_tag/trend_tag.dart';
 import 'package:all_in_one/provider/search_provider/illusts_search_provider.dart';
 import 'package:all_in_one/util/log_utils.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:waterfall_flow/waterfall_flow.dart';
 
 /// 热门标签 对应 官方的网格 热门词语
 class TrendTagsView extends StatefulWidget {
-  const TrendTagsView({Key? key}) : super(key: key);
+  const TrendTagsView({
+    Key? key,
+    required this.paddingTop,
+    required this.textEditingController,
+  }) : super(key: key);
+
+  final double paddingTop;
+
+  final TextEditingController textEditingController;
 
   @override
   State<TrendTagsView> createState() => _TrendTagsViewState();
@@ -26,24 +34,80 @@ class TrendTagsView extends StatefulWidget {
 class _TrendTagsViewState extends State<TrendTagsView> {
   final trendTagsStore = <TrendTag>[];
 
+  // TODO: implement grid card, and onTap behavior.
+  late TextEditingController textEditingController;
+
+  @override
+  void initState() {
+    super.initState();
+    textEditingController = widget.textEditingController;
+  }
+
+  Widget buildErrorWidget(AsyncSnapshot<Response<dynamic>> snapshot) {
+    return Center(child: Text("${snapshot.error}"));
+  }
+
+  Widget buildWaitingWidget() {
+    return Center(child: CircularProgressIndicator());
+  }
+
+  Widget buildGridWidget(AsyncSnapshot<Response<dynamic>> snapshot) {
+    if (snapshot.hasData && snapshot.data != null) {
+      final response = snapshot.data!.data;
+      for (var tag in response["trend_tags"]) {
+        trendTagsStore.add(TrendTag.fromJson(tag));
+      }
+      return CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          SliverPadding(
+            padding: EdgeInsets.only(top: widget.paddingTop),
+            sliver: SliverGrid(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) => PixivImage(
+                  url: trendTagsStore[index].illust!.imageUrls!.squareMedium!,
+                ),
+                childCount: trendTagsStore.length,
+              ),
+              gridDelegate:
+                  const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
+            ),
+          )
+        ],
+      );
+    }
+    return const Center(child: Text("No data"));
+  }
+
+  Widget _buildInternalError() {
+    return const Center(child: Text("Internal Error"));
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (trendTagsStore.isEmpty) return const Center(child: Text("TrendTags is Empty"));
-    return CustomScrollView(
-      physics: const BouncingScrollPhysics(),
-      slivers: [
-        SliverGrid(
-          delegate: SliverChildBuilderDelegate(
-            (context, index) => PixivImage(
-              url: trendTagsStore[index].illust!.imageUrls!.squareMedium!,
-            ),
-            childCount: trendTagsStore.length,
-          ),
-          gridDelegate:
-              const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
-        )
-      ],
+    return FutureBuilder<Response>(
+      future: ApiClient().getIllustTrendTags(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) return buildErrorWidget(snapshot);
+
+        switch (snapshot.connectionState) {
+          case ConnectionState.waiting:
+            return buildWaitingWidget();
+
+          case ConnectionState.done:
+            return buildGridWidget(snapshot);
+          default:
+            return _buildInternalError();
+        }
+      },
     );
+  }
+
+  @override
+  void didUpdateWidget(covariant TrendTagsView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    trendTagsStore.clear();
+    textEditingController = widget.textEditingController;
   }
 }
 
@@ -117,7 +181,7 @@ class _IllustResultViewState extends State<IllustResultView> {
           await ApiClient().getSearchIllust(widget.words, widget.searchConfig);
       _processIllustResponse(response);
     } on DioError catch (e) {
-      LogUitls.e(e.message, stackTrace: e.stackTrace!);
+      LogUitls.e(e.response.toString(), stackTrace: e.stackTrace!);
     }
   }
 
@@ -129,6 +193,8 @@ class _IllustResultViewState extends State<IllustResultView> {
       responseIllusts.add(Illust.fromJson(item));
     }
     store.addStore(responseIllusts);
+
+    LogUitls.d("fetched search result :" + response.data.toString());
   }
 
   Future<void> handleLoadingMore() async {
@@ -168,6 +234,17 @@ class _IllustQueryHistoryState extends State<IllustQueryHistory> {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(child: Text("Illust Query History"));
+    return Center(
+        child: Column(
+      children: [
+        Text("Illust Query History"),
+        MaterialButton(
+          onPressed: () {
+            textEditingController.text = "Asoul";
+          },
+          child: Text("Change Search Word"),
+        )
+      ],
+    ));
   }
 }

@@ -14,6 +14,7 @@ import 'package:all_in_one/page/search/search_user.dart';
 import 'package:all_in_one/provider/search_provider/illusts_search_provider.dart';
 import 'package:all_in_one/provider/trend_tag_provider.dart';
 import 'package:all_in_one/component/pixiv_image.dart';
+import 'package:all_in_one/util/log_utils.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -111,7 +112,7 @@ class _SearchPageState extends State<SearchPage> {
   final selectedSearchTarget = ValueNotifier<int>(index2View["illust"]!);
 
   /// 影响搜索结果
-  late final ValueNotifier<SearchConfig> filterData;
+  late SearchConfig filterData;
 
   late final TextEditingController _textEditingController;
 
@@ -119,25 +120,47 @@ class _SearchPageState extends State<SearchPage> {
 
   final _focusNode = FocusNode();
 
+  // Used to controll history/autofill view display or not.
+  final showHAView = ValueNotifier<bool>(false);
+
+  // Used to controll result view display or not.
+  final showResView = ValueNotifier<bool>(false);
+
+  // Used to controll recommend view display or not.
+  final showRecomView = ValueNotifier<bool>(true);
+
   @override
   void initState() {
     super.initState();
-    filterData = ValueNotifier<SearchConfig>(SearchConfig.defaultConfig()); // ?? stored
+    filterData = SearchConfig.defaultConfig(); // ?? stored
     _textEditingController = TextEditingController();
   }
 
   @override
   Widget build(BuildContext context) {
     // 顶部搜索栏
-    final searchTextBar =
-        LayoutId(id: ComponentId.searchAppBar, child: buildSearchBar());
+    final searchTextBar = LayoutId(
+      id: ComponentId.searchAppBar,
+      child: buildSearchBar(),
+    );
+
+    // 热门搜索词容器
+    final recommendView = LayoutId(
+      id: ComponentId.searchRecommendView,
+      child: buildRecommandView(),
+    );
 
     // 搜索历史容器
-    final queryHistoryBoxes = buildQueryHistoryBoxes();
+    final queryHistoryBoxes = LayoutId(
+      id: ComponentId.searchHistoryView,
+      child: buildQueryHistoryBoxes(),
+    );
 
     // 搜索结果容器
-    final queryResultBox =
-        LayoutId(id: ComponentId.searchResultView, child: buildQueryResultBox());
+    final queryResultBox = LayoutId(
+      id: ComponentId.searchResultView,
+      child: buildQueryResultBox(),
+    );
 
     final viewPaddingTop = MediaQuery.of(context).viewPadding.top;
     return CustomMultiChildLayout(
@@ -145,7 +168,8 @@ class _SearchPageState extends State<SearchPage> {
         viewPaddingTop: viewPaddingTop,
       ),
       children: [
-        //queryHistoryBoxes, // IndexedStack  stateful
+        recommendView,
+        queryHistoryBoxes, // IndexedStack  stateful
         queryResultBox, //
         searchTextBar, // Container
       ],
@@ -153,6 +177,7 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Widget buildSearchBar() {
+    // 真值表嗯造
     final searchTextField = SizedBox(
         width: 300,
         child: CupertinoSearchTextField(
@@ -160,73 +185,181 @@ class _SearchPageState extends State<SearchPage> {
           focusNode: _focusNode,
           onTap: () {
             // Todo: Shrink appbar and focus.
+            //focus.value = true;
+            showRecomView.value = false;
+            showResView.value = false;
+            showHAView.value = false;
           },
           onSuffixTap: () {
             textEditingController.clear();
+            showRecomView.value = false;
+            showResView.value = false;
+            showHAView.value = true;
             //focusNode.unfocus();
           },
           onChanged: (words) {
             // Todo: Fetch AutoFillWord and build relative text.
+            showRecomView.value = false;
+            showResView.value = false;
+            showHAView.value = true;
           },
           onSubmitted: (words) {
             // Todo: Fetch IllustResult and build WaterFallFlow list.
+            if (textEditingController.text.isEmpty) {
+              showRecomView.value = false;
+              showResView.value = false;
+              showHAView.value = true;
+            }
+            LogUitls.d(textEditingController.text);
+            showRecomView.value = false;
+            showResView.value = true;
+            showHAView.value = false;
             Provider.of<IllustSearchResultProvider>(context, listen: false)
                 .updateResultView();
           },
         ));
 
-    final filter = MaterialButton(onPressed: () {
-      showCupertinoModalPopup(
-          context: context,
-          builder: (context) {
-            return Filter(config: SearchConfig.defaultConfig());
-          });
-    });
+    final filter = MaterialButton(
+      onPressed: () async {
+        SearchConfig? config = await showCupertinoModalPopup(
+            context: context,
+            builder: (context) {
+              return Filter(config: filterData);
+            });
+        if (config != null) {
+          filterData = config;
+          Provider.of<IllustSearchResultProvider>(context, listen: false)
+              .updateResultView();
+        }
+      },
+      child: Text("Filter"),
+    );
 
-    return Center(child: Row(children: [searchTextField, filter]));
+    final cancel = MaterialButton(
+      onPressed: () {
+        textEditingController.clear();
+        _focusNode.unfocus();
+        showRecomView.value = true;
+        showResView.value = false;
+        showHAView.value = false;
+      },
+      child: Text("Cancel"),
+    );
+
+    return Center(
+        child: Row(children: [
+      Expanded(flex: 2, child: searchTextField),
+      Expanded(child: filter),
+      Expanded(child: cancel),
+    ]));
   }
 
   Widget buildQueryHistoryBoxes() {
-    return ValueListenableBuilder<int>(
-      valueListenable: selectedSearchTarget,
-      builder: (context, index, child) {
-        return LazyIndexedStack(index: index, children: [
-          IllustQueryHistory(
-            textEditingController: textEditingController,
-          ),
-          UserQueryHistory(
-            textEditingController: textEditingController,
-          ),
-        ]);
+    final visibleWrap = ValueListenableBuilder<bool>(
+      valueListenable: showHAView,
+      builder: (context, visible, child) {
+        return Visibility(
+          maintainState: true,
+          child: child!,
+          visible: visible,
+        );
       },
+      child: Container(
+        color: Colors.white,
+        child: ValueListenableBuilder<int>(
+          valueListenable: selectedSearchTarget,
+          builder: (context, index, child) {
+            return LazyIndexedStack(index: index, children: [
+              IllustQueryHistory(
+                textEditingController: textEditingController,
+              ),
+              UserQueryHistory(
+                textEditingController: textEditingController,
+              ),
+            ]);
+          },
+        ),
+      ),
     );
+
+    return visibleWrap;
   }
 
   Widget buildQueryResultBox() {
-    // only when submit is press, call this build.
-    // outter wrap
-    // inner wrap
     final topPadding = _kAppBarHeight + MediaQuery.of(context).viewPadding.top;
-    return ValueListenableBuilder<int>(
-        valueListenable: selectedSearchTarget,
-        builder: (context, index, child) {
-          switch (index) {
-            case 0:
-              return Consumer<IllustSearchResultProvider>(
-                builder: (context, value, child) {
-                  return IllustResultView(
-                    paddingTop: topPadding,
-                    words: textEditingController.text,
-                    searchConfig: filterData.value,
-                  );
-                },
-              );
-            case 1:
-              return UserResultView();
-            default:
-              return const Center(child: Text("Internal Error!"));
-          }
-        });
+
+    final visiableWrap = ValueListenableBuilder<bool>(
+      valueListenable: showResView,
+      builder: (context, visible, child) {
+        return Visibility(
+          maintainState: true,
+          visible: visible,
+          child: child!,
+        );
+      },
+      child: Container(
+        color: Colors.white,
+        child: ValueListenableBuilder<int>(
+          valueListenable: selectedSearchTarget,
+          builder: (context, index, child) {
+            switch (index) {
+              case 0:
+                return Consumer<IllustSearchResultProvider>(
+                  builder: (context, value, child) {
+                    return IllustResultView(
+                      paddingTop: topPadding,
+                      words: textEditingController.text,
+                      searchConfig: filterData,
+                    );
+                  },
+                );
+              case 1:
+                return UserResultView();
+              default:
+                return const Center(child: Text("Internal Error!"));
+            }
+          },
+        ),
+      ),
+    );
+
+    return visiableWrap;
+  }
+
+  Widget buildRecommandView() {
+    final paddingTop = _kAppBarHeight + MediaQuery.of(context).viewPadding.top;
+
+    final visiableWrap = ValueListenableBuilder<bool>(
+      valueListenable: showRecomView,
+      builder: (context, visible, child) {
+        return Visibility(
+          maintainState: true,
+          visible: visible,
+          child: child!,
+        );
+      },
+      child: Container(
+        color: Colors.white,
+        child: ValueListenableBuilder<int>(
+          valueListenable: selectedSearchTarget,
+          builder: (context, index, child) {
+            switch (index) {
+              case 0:
+                return TrendTagsView(
+                  paddingTop: paddingTop,
+                  textEditingController: textEditingController,
+                );
+              case 1:
+                return RecommendUserView();
+              default:
+                return const Center(child: Text("Internal Error!"));
+            }
+          },
+        ),
+      ),
+    );
+
+    return visiableWrap;
   }
 }
 

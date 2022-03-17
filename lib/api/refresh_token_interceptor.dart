@@ -3,10 +3,11 @@ import 'package:all_in_one/api/api_client.dart';
 import 'package:all_in_one/api/oauth.dart';
 import 'package:all_in_one/constant/hive_boxes.dart';
 import 'package:all_in_one/models/models.dart';
+import 'package:all_in_one/util/log_utils.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
-class TokenInterceptor extends Interceptor {
+class TokenInterceptor extends QueuedInterceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     final userAccount = HiveBoxes.accountBox.get("myAccount")!;
@@ -30,31 +31,35 @@ class TokenInterceptor extends Interceptor {
       debugPrint(err.response?.data["error"]["message"].contains("OAuth").toString());
       if (err.response?.data["error"]["message"].contains("OAuth")) {
         // 见 Oauth_error.json 查看
-        var apiClient = ApiClient();
 
-        debugPrint("===== ApiClient Lock! =====");
-        apiClient.httpClient.lock();
+        try {
+          var apiClient = ApiClient();
+          apiClient.httpClient.lock();
 
-        await handleAccessTokenExpired();
+          await handleAccessTokenExpired();
 
-        apiClient.httpClient.unlock();
-        debugPrint("===== ApiClient Unlock! =====");
-        RequestOptions reqOpt = err.requestOptions;
+          apiClient.httpClient.unlock();
+          RequestOptions reqOpt = err.requestOptions;
 
-        Response response = await apiClient.httpClient.request(reqOpt.path,
+          Response response = await apiClient.httpClient.request(
+            reqOpt.path,
             data: reqOpt.data,
             queryParameters: reqOpt.queryParameters,
             options: Options(
               method: reqOpt.method,
               headers: reqOpt.headers,
               contentType: reqOpt.contentType,
-            ));
-
-        return handler.resolve(response);
+            ),
+          );
+          return handler.resolve(response);
+        } on DioError catch (e) {
+          LogUitls.e(e.message, stackTrace: e.stackTrace);
+          return handler.reject(err);
+        }
       }
     }
 
-    return handler.next(err);
+    return handler.reject(err);
   }
 
   // 处理access_token过期
@@ -65,9 +70,13 @@ class TokenInterceptor extends Interceptor {
     Response response =
         await OAuthClient().postRefreshAuthToken(refreshToken: refreshToken!);
     Account freshUserData = Account.fromJson(response.data);
-    HiveBoxes.accountBox.put("myAccount", userAccount);
+    HiveBoxes.accountBox.put("myAccount", freshUserData);
+
+    LogUitls.d("A fresh Token is stored. ");
   }
 }
+
+
 
 
 // InterceptorsWrapper(onRequest:

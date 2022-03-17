@@ -1,11 +1,21 @@
-import "package:logging/logging.dart";
 import 'dart:developer' as _dev;
 
 class LogUitls {
   const LogUitls._();
 
-  /// 打印Error信息
-  static void e(String e, {required StackTrace stackTrace}) {
-    _dev.log(e, time: DateTime.now(), stackTrace: StackTrace.current);
+  static void e(String message, {StackTrace? stackTrace}) {
+    _dev.log(message, time: DateTime.now(), stackTrace: StackTrace.current, level: 777);
+  }
+
+  static void d(String message) {
+    _dev.log(message, time: DateTime.now(), level: 1);
+  }
+
+  static void w(String message) {
+    _dev.log(message, time: DateTime.now(), level: 7);
+  }
+
+  static void i(String message) {
+    _dev.log(message, level: 0);
   }
 }
