@@ -180,10 +180,11 @@ class _SearchPageState extends State<SearchPage> {
 
     final filter = MaterialButton(onPressed: () {
       showCupertinoModalPopup(
-          context: context,
-          builder: (context) {
-            return Filter(config: SearchConfig.defaultConfig());
-          });
+        context: context,
+        builder: (context) {
+          return Filter(config: SearchConfig.defaultConfig());
+        },
+      );
     });
 
     final searchBar = Padding(

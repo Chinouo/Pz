@@ -7,12 +7,10 @@ import 'package:all_in_one/component/sliver/loading_more.dart';
 import 'package:all_in_one/constant/search_config.dart';
 import 'package:all_in_one/models/illust/illust.dart';
 import 'package:all_in_one/models/trend_tag/trend_tag.dart';
-import 'package:all_in_one/provider/search_provider/illusts_search_provider.dart';
 import 'package:all_in_one/util/log_utils.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:provider/provider.dart';
 import 'package:waterfall_flow/waterfall_flow.dart';
 
 /// 热门标签 对应 官方的网格 热门词语
@@ -37,9 +35,40 @@ class _TrendTagsViewState extends State<TrendTagsView> {
   // TODO: implement grid card, and onTap behavior.
   late TextEditingController textEditingController;
 
+  late Future<Response> _trendTagsFuture;
+
   @override
   void initState() {
     super.initState();
+    textEditingController = widget.textEditingController;
+    _trendTagsFuture = ApiClient().getIllustTrendTags();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    debugPrint("build TrendTagsView. ");
+    return FutureBuilder<Response>(
+      future: _trendTagsFuture,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) return buildErrorWidget(snapshot);
+
+        switch (snapshot.connectionState) {
+          case ConnectionState.waiting:
+            return buildWaitingWidget();
+
+          case ConnectionState.done:
+            return buildGridWidget(snapshot);
+          default:
+            return _buildInternalError();
+        }
+      },
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant TrendTagsView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    trendTagsStore.clear();
     textEditingController = widget.textEditingController;
   }
 
@@ -82,33 +111,6 @@ class _TrendTagsViewState extends State<TrendTagsView> {
   Widget _buildInternalError() {
     return const Center(child: Text("Internal Error"));
   }
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<Response>(
-      future: ApiClient().getIllustTrendTags(),
-      builder: (context, snapshot) {
-        if (snapshot.hasError) return buildErrorWidget(snapshot);
-
-        switch (snapshot.connectionState) {
-          case ConnectionState.waiting:
-            return buildWaitingWidget();
-
-          case ConnectionState.done:
-            return buildGridWidget(snapshot);
-          default:
-            return _buildInternalError();
-        }
-      },
-    );
-  }
-
-  @override
-  void didUpdateWidget(covariant TrendTagsView oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    trendTagsStore.clear();
-    textEditingController = widget.textEditingController;
-  }
 }
 
 /// 搜索插画的结果页  瀑布流
@@ -132,82 +134,158 @@ class IllustResultView extends StatefulWidget {
 }
 
 class _IllustResultViewState extends State<IllustResultView> {
-  List<Illust> _illustStore = <Illust>[];
+  final _illustStore = <Illust>[];
+
+  String? nextUrl;
+
+  late Future<Response> _resultFuture;
+
+  Future? prevFuture;
 
   @override
   void initState() {
     super.initState();
-    _fetchIllustResult();
+    _resultFuture = ApiClient().getSearchIllust(widget.words, widget.searchConfig);
+    //_fetchIllustResult();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_illustStore.isEmpty) return const Center(child: Text("Nodate"));
-    return CustomScrollView(
-      physics: const BouncingScrollPhysics(),
-      slivers: [
-        SliverPadding(
-          padding: EdgeInsets.only(top: widget.paddingTop),
-          sliver: SliverWaterfallFlow(
-            gridDelegate: const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2, crossAxisSpacing: 20),
-            delegate: SliverChildBuilderDelegate((context, index) {
-              return IllustCard(illust: _illustStore[index]);
-            }, childCount: _illustStore.length),
-          ),
-        ),
-        LoadingMoreSliver(onRefresh: handleLoadingMore)
-      ],
+    debugPrint("build illust result. ");
+    return FutureBuilder<Response>(
+      future: _resultFuture,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) return _buildErrorWidget(snapshot);
+        switch (snapshot.connectionState) {
+          case ConnectionState.waiting:
+            return _buildWatingWidget();
+          case ConnectionState.done:
+            return _buildWaterFallFlowResult(snapshot);
+          default:
+            return SizedBox.shrink();
+        }
+      },
     );
   }
 
   @override
   void didUpdateWidget(covariant IllustResultView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final store = Provider.of<IllustSearchResultProvider>(context, listen: false);
+    //final store = Provider.of<IllustSearchResultProvider>(context, listen: false);
     if (oldWidget.words != widget.words ||
         oldWidget.searchConfig != widget.searchConfig) {
-      SchedulerBinding.instance!.addPostFrameCallback((timeStamp) {
-        store.clearStore();
-        _fetchIllustResult();
-      });
+      _illustStore.clear();
+      prevFuture?.ignore();
+      nextUrl = null;
+      if (widget.words.isNotEmpty) {
+        _resultFuture = ApiClient().getSearchIllust(widget.words, widget.searchConfig);
+      }
+      // SchedulerBinding.instance!.addPostFrameCallback((timeStamp) {
+      //   store.clearStore();
+      //   _fetchIllustResult();
+      // });
     }
-    _illustStore = store.illustStore;
+    //_illustStore = store.illustStore;
   }
 
-  Future<void> _fetchIllustResult() async {
-    try {
-      final response =
-          await ApiClient().getSearchIllust(widget.words, widget.searchConfig);
-      _processIllustResponse(response);
-    } on DioError catch (e) {
-      LogUitls.e(e.response.toString(), stackTrace: e.stackTrace!);
+  Widget _buildWaterFallFlowResult(AsyncSnapshot<Response> snapshot) {
+    final jsonIllusts = snapshot.data!.data["illusts"];
+    nextUrl = snapshot.data!.data["next_url"];
+    for (var illust in jsonIllusts) {
+      _illustStore.add(Illust.fromJson(illust));
     }
+
+    if (_illustStore.isEmpty) return const Center(child: Text("No data"));
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            SliverPadding(
+              padding: EdgeInsets.only(top: widget.paddingTop),
+              sliver: SliverWaterfallFlow(
+                gridDelegate: const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2, crossAxisSpacing: 20),
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  return IllustCard(illust: _illustStore[index]);
+                }, childCount: _illustStore.length),
+              ),
+            ),
+            LoadingMoreSliver(
+              onRefresh: () async {
+                try {
+                  // 逆天写法
+                  prevFuture = ApiClient().getNext(nextUrl!).then((response) {
+                    _updateIllustStore(response, () {
+                      SchedulerBinding.instance!
+                          .addPersistentFrameCallback((timeStamp) {
+                        setState(() {}); // statefulbuilder's setState.
+                      });
+                    });
+                  });
+                  await prevFuture;
+                } on DioError catch (e) {
+                  LogUitls.e(e.message, stackTrace: e.stackTrace!);
+                }
+              },
+            )
+          ],
+        );
+      },
+    );
   }
 
-  void _processIllustResponse(Response response) {
-    final store = Provider.of<IllustSearchResultProvider>(context, listen: false);
-    store.nextUrl = response.data["next_url"];
-    final responseIllusts = <Illust>[];
-    for (var item in response.data["illusts"]) {
-      responseIllusts.add(Illust.fromJson(item));
-    }
-    store.addStore(responseIllusts);
-
-    LogUitls.d("fetched search result :" + response.data.toString());
+  Widget _buildWatingWidget() {
+    return Center(child: CircularProgressIndicator());
   }
 
-  Future<void> handleLoadingMore() async {
-    try {
-      final store = Provider.of<IllustSearchResultProvider>(context, listen: false);
-
-      if (store.nextUrl == null) return;
-      final response = await ApiClient().getNext(store.nextUrl!);
-      _processIllustResponse(response);
-    } on DioError catch (e) {
-      LogUitls.e(e.message, stackTrace: e.stackTrace!);
-    }
+  Widget _buildErrorWidget(AsyncSnapshot snapshot) {
+    return Center(child: Text("An Error Occoured"));
   }
+
+  void _updateIllustStore(Response response, void Function() setChildState) {
+    if (nextUrl == null) return;
+    nextUrl = response.data["next_url"];
+    final jsonIllusts = response.data["illusts"];
+    for (var illust in jsonIllusts) {
+      _illustStore.add(Illust.fromJson(illust));
+    }
+    setChildState();
+  }
+
+  // Future<void> _fetchIllustResult() async {
+  //   try {
+  //     final response =
+  //         await ApiClient().getSearchIllust(widget.words, widget.searchConfig);
+  //     _processIllustResponse(response);
+  //   } on DioError catch (e) {
+  //     LogUitls.e(e.response.toString(), stackTrace: e.stackTrace!);
+  //   }
+  // }
+
+  // void _processIllustResponse(Response response) {
+  //   // final store = Provider.of<IllustSearchResultProvider>(context, listen: false);
+  //   // store.nextUrl = response.data["next_url"];
+  //   // final responseIllusts = <Illust>[];
+  //   // for (var item in response.data["illusts"]) {
+  //   //   responseIllusts.add(Illust.fromJson(item));
+  //   // }
+  //   // store.addStore(responseIllusts);
+
+  //   LogUitls.d("fetched search result :" + response.data.toString());
+  // }
+
+  // Future<void> handleLoadingMore() async {
+  //   try {
+  //     final store = Provider.of<IllustSearchResultProvider>(context, listen: false);
+
+  //     if (store.nextUrl == null) return;
+  //     final response = await ApiClient().getNext(store.nextUrl!);
+  //     _processIllustResponse(response);
+  //   } on DioError catch (e) {
+  //     LogUitls.e(e.message, stackTrace: e.stackTrace!);
+  //   }
+  // }
 }
 
 /// 搜索插画的历史记录

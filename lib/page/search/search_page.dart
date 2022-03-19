@@ -118,7 +118,7 @@ class _SearchPageState extends State<SearchPage> {
 
   TextEditingController get textEditingController => _textEditingController;
 
-  final _focusNode = FocusNode();
+  final _focusNode = FocusNode(descendantsAreFocusable: false);
 
   // Used to controll history/autofill view display or not.
   final showHAView = ValueNotifier<bool>(false);
@@ -129,6 +129,9 @@ class _SearchPageState extends State<SearchPage> {
   // Used to controll recommend view display or not.
   final showRecomView = ValueNotifier<bool>(true);
 
+  // Used to setState for child when filter config changed.
+  final illustResultViewKey = GlobalKey<State>();
+
   @override
   void initState() {
     super.initState();
@@ -138,6 +141,7 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint("build SearchPage.");
     // 顶部搜索栏
     final searchTextBar = LayoutId(
       id: ComponentId.searchAppBar,
@@ -188,34 +192,28 @@ class _SearchPageState extends State<SearchPage> {
             //focus.value = true;
             showRecomView.value = false;
             showResView.value = false;
-            showHAView.value = false;
+            showHAView.value = true;
           },
           onSuffixTap: () {
             textEditingController.clear();
-            showRecomView.value = false;
-            showResView.value = false;
-            showHAView.value = true;
             //focusNode.unfocus();
           },
           onChanged: (words) {
             // Todo: Fetch AutoFillWord and build relative text.
-            showRecomView.value = false;
-            showResView.value = false;
-            showHAView.value = true;
           },
           onSubmitted: (words) {
             // Todo: Fetch IllustResult and build WaterFallFlow list.
-            if (textEditingController.text.isEmpty) {
-              showRecomView.value = false;
+            if (words.isEmpty) {
+              // is nothing
+              showRecomView.value = true;
               showResView.value = false;
-              showHAView.value = true;
+              showHAView.value = false;
+              return;
             }
             LogUitls.d(textEditingController.text);
             showRecomView.value = false;
             showResView.value = true;
             showHAView.value = false;
-            Provider.of<IllustSearchResultProvider>(context, listen: false)
-                .updateResultView();
           },
         ));
 
@@ -228,8 +226,8 @@ class _SearchPageState extends State<SearchPage> {
             });
         if (config != null) {
           filterData = config;
-          Provider.of<IllustSearchResultProvider>(context, listen: false)
-              .updateResultView();
+          // Magic
+          illustResultViewKey.currentState?.setState(() {});
         }
       },
       child: Text("Filter"),
@@ -287,7 +285,6 @@ class _SearchPageState extends State<SearchPage> {
 
   Widget buildQueryResultBox() {
     final topPadding = _kAppBarHeight + MediaQuery.of(context).viewPadding.top;
-
     final visiableWrap = ValueListenableBuilder<bool>(
       valueListenable: showResView,
       builder: (context, visible, child) {
@@ -304,14 +301,11 @@ class _SearchPageState extends State<SearchPage> {
           builder: (context, index, child) {
             switch (index) {
               case 0:
-                return Consumer<IllustSearchResultProvider>(
-                  builder: (context, value, child) {
-                    return IllustResultView(
-                      paddingTop: topPadding,
-                      words: textEditingController.text,
-                      searchConfig: filterData,
-                    );
-                  },
+                return IllustResultView(
+                  key: illustResultViewKey,
+                  paddingTop: topPadding,
+                  words: textEditingController.text,
+                  searchConfig: filterData,
                 );
               case 1:
                 return UserResultView();
@@ -343,6 +337,13 @@ class _SearchPageState extends State<SearchPage> {
         child: ValueListenableBuilder<int>(
           valueListenable: selectedSearchTarget,
           builder: (context, index, child) {
+            return LazyIndexedStack(index: index, children: [
+              TrendTagsView(
+                paddingTop: paddingTop,
+                textEditingController: textEditingController,
+              ),
+              RecommendUserView(),
+            ]);
             switch (index) {
               case 0:
                 return TrendTagsView(

@@ -9,7 +9,6 @@ import 'package:all_in_one/constant/hive_boxes.dart';
 void main() {
   runZonedGuarded<void>(
     () async {
-      //初始化常量
       ScreenFitUtil().initConfig(baseWidth: 375);
       ScreenFitWidgetsFlutterBinding.ensureInitialized();
       await Hive.initFlutter();

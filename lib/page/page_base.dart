@@ -48,11 +48,11 @@ class _MyAppState extends State<MyApp> {
     return MultiProvider(
       providers: _buildProviders(),
       child: MaterialApp(
-        navigatorKey: Constant.navigatorKey,
+        //navigatorKey: Constant.navigatorKey,
         builder: (context, widget) {
           return MediaQueryWrapper(
             builder: (BuildContext context) {
-              return Material(child: widget!);
+              return Material(child: widget!); // Material(child: widget!);
             },
           );
         },
@@ -77,7 +77,17 @@ class _MyAppState extends State<MyApp> {
   // 自己搞一套路由 ...
   List<Route<dynamic>> _handleInitialRoute(String initialRoute) {
     if (initialRoute == '/home') {
-      return [MaterialPageRoute(builder: (context) => const CustomScaffold())];
+      return [
+        // 加上一层MediaQuery 防止键盘弹出 InheritWidget notify 大范围build
+        MaterialPageRoute(builder: (context) {
+          final mediaQueryData =
+              MediaQuery.of(context).copyWith(viewInsets: const EdgeInsets.all(0));
+          return MediaQuery(
+            data: mediaQueryData,
+            child: const CustomScaffold(),
+          );
+        })
+      ];
     }
     if (initialRoute == '/login') {
       return [FoundationRoute(builder: (context) => LoginEntry())];
@@ -106,7 +116,12 @@ class _MyAppState extends State<MyApp> {
     if (settings.name == '/home') {
       return MaterialPageRoute(
         builder: (context) {
-          return const CustomScaffold();
+          final mediaQueryData =
+              MediaQuery.of(context).copyWith(viewInsets: const EdgeInsets.all(0));
+          return MediaQuery(
+            data: mediaQueryData,
+            child: const CustomScaffold(),
+          );
         },
       );
     }
@@ -175,6 +190,7 @@ class _CustomScaffoldState extends State<CustomScaffold> {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint("build CustomScaffold. ");
     final safeAreaHeight = MediaQuery.of(context).viewPadding.bottom;
     final width = MediaQuery.of(context).size.width;
 
