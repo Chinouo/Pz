@@ -173,4 +173,40 @@ class ApiClient {
     debugPrint("real next url : $finalUrl");
     return httpClient.get(finalUrl);
   }
+
+  // 插画详情页
+  Future<Response> getIllustDetail(int illust_id) {
+    return httpClient.get("/v1/illust/detail?filter=for_android",
+        queryParameters: {"illust_id": illust_id});
+  }
+
+  // 插画评论区
+  // May can cached using maxStale ...
+  Future<Response> getIllustComments(int illustId) async {
+    return httpClient.get(
+      "/v3/illust/comments",
+      queryParameters: {
+        "illust_id": illustId,
+      },
+    );
+  }
+
+  Future<Response> getIllustCommentsReplies(int commentId) async {
+    return httpClient.get(
+      "/v2/illust/comment/replies",
+      queryParameters: {
+        "comment_id": commentId,
+      },
+    );
+  }
+
+  // May can cached using maxStale ...
+  Future<Response> getIllustRelated(int illustId, {bool force = false}) async {
+    return httpClient.get(
+      "/v2/illust/related?filter=for_android",
+      queryParameters: {
+        "illust_id": illustId,
+      },
+    );
+  }
 }

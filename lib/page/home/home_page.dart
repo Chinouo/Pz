@@ -134,46 +134,48 @@ class _RankingViewState extends State<RankingView> {
     final content = SizedBox(
       height: 360,
       child: FutureBuilder<Response>(
-          future: illustFuture,
-          builder: ((context, snapshot) {
-            if (snapshot.hasError) {
-              return const Center(
-                child: Text("Error"),
+        future: illustFuture,
+        builder: ((context, snapshot) {
+          if (snapshot.hasError) {
+            return const Center(
+              child: Text("Error"),
+            );
+          }
+
+          switch (snapshot.connectionState) {
+            case ConnectionState.waiting:
+              return const CircularProgressIndicator();
+
+            case ConnectionState.done:
+              if (!snapshot.hasData) {
+                return const Center(child: Text("No Data"));
+              }
+              storeIllustDataFrom(snapshot.data!);
+              return GridView.builder(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                addAutomaticKeepAlives: false,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 1,
+                  mainAxisSpacing: 36,
+                ),
+                itemBuilder: (context, index) {
+                  debugPrint("index:$index  ${illustStore[index].id!}");
+                  return PixivImage(
+                    url: illustStore[index].imageUrls!.medium!,
+                    height: 360,
+                    width: 360,
+                  );
+                },
+                itemCount: illustStore.length,
               );
-            }
-
-            switch (snapshot.connectionState) {
-              case ConnectionState.waiting:
-                return const CircularProgressIndicator();
-
-              case ConnectionState.done:
-                if (!snapshot.hasData) {
-                  return const Center(child: Text("No Data"));
-                }
-                storeIllustDataFrom(snapshot.data!);
-                return GridView.builder(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  addAutomaticKeepAlives: false,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 1,
-                    mainAxisSpacing: 36,
-                  ),
-                  itemBuilder: (context, index) {
-                    return PixivImage(
-                      url: illustStore[index].imageUrls!.medium!,
-                      height: 360,
-                      width: 360,
-                    );
-                  },
-                  itemCount: illustStore.length,
-                );
-              default:
-                return const SizedBox(
-                  height: 360,
-                );
-            }
-          })),
+            default:
+              return const SizedBox(
+                height: 360,
+              );
+          }
+        }),
+      ),
     );
 
     return Column(

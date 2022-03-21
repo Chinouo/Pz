@@ -2,6 +2,7 @@
 
 import 'dart:ui';
 
+import 'package:all_in_one/api/api_client.dart';
 import 'package:all_in_one/constant/constant.dart';
 import 'package:all_in_one/generated/l10n.dart';
 import 'package:all_in_one/page/home/home_page.dart';
@@ -15,7 +16,9 @@ import 'package:all_in_one/provider/search_provider/illusts_search_provider.dart
 import 'package:all_in_one/provider/search_provider/user_search_provider.dart';
 import 'package:all_in_one/provider/trend_tag_provider.dart';
 import 'package:all_in_one/screen_fit/media_query_wrap.dart';
+import 'package:all_in_one/util/log_utils.dart';
 import 'package:all_in_one/widgets/b2t_cupertino_route.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -239,7 +242,7 @@ class _CustomScaffoldState extends State<CustomScaffold> {
               index: _currentIndex,
               children: const [
                 HomePage(),
-                Placeholder(),
+                TestPage(),
                 SearchPage(),
                 SettingPage(),
               ],
@@ -282,5 +285,37 @@ class BlurTabBar extends StatelessWidget {
         ),
       ),
     ));
+  }
+}
+
+class TestPage extends StatefulWidget {
+  const TestPage({Key? key}) : super(key: key);
+
+  @override
+  State<TestPage> createState() => _TestPageState();
+}
+
+class _TestPageState extends State<TestPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("Test")),
+      body: Center(
+        child: MaterialButton(
+          onPressed: () async {
+            // getIllustCommentsReplies
+            Response? res;
+            res = await ApiClient().getIllustDetail(97006422);
+            LogUitls.d(res.toString());
+            var x = res;
+            res = await ApiClient().getIllustComments(97006422);
+            LogUitls.d(res.toString());
+            res = await ApiClient().getIllustRelated(97006422);
+            LogUitls.d(res.toString());
+          },
+          child: Text("Test api"),
+        ),
+      ),
+    );
   }
 }
