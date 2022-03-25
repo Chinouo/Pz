@@ -55,7 +55,8 @@ class _FilterState extends State<Filter> {
     final size = MediaQuery.of(context).size;
 
     final searchTargetSelector = <String, Widget>{
-      searchTargets[0]: Center(child: Text(S.of(context).partial_match_for_tags)),
+      searchTargets[0]:
+          Center(child: Text(S.of(context).partial_match_for_tags)),
       searchTargets[1]: Center(child: Text(S.of(context).exact_match_for_tags)),
       searchTargets[2]: Center(child: Text(S.of(context).title_and_caption)),
     };

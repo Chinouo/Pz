@@ -328,7 +328,8 @@ class _SearchPageState extends State<SearchPage> {
                   debugPrint('-------ConnectionState.active---------');
                   break;
                 case ConnectionState.done:
-                  debugPrint('-------ConnectionState.done---${snapshot.hasData}------');
+                  debugPrint(
+                      '-------ConnectionState.done---${snapshot.hasData}------');
                   if (snapshot.hasData) {
                     final data = snapshot.data?.data["tags"] ?? [];
 
@@ -399,7 +400,8 @@ class _SearchPageState extends State<SearchPage> {
               debugPrint('-------ConnectionState.active---------');
               break;
             case ConnectionState.done:
-              debugPrint('-------ConnectionState.done---${snapshot.hasData}------');
+              debugPrint(
+                  '-------ConnectionState.done---${snapshot.hasData}------');
               if (snapshot.hasData) {
                 List list = snapshot.data?.data["trend_tags"] ?? [];
                 if (list.isEmpty) return const SliverToBoxAdapter();
@@ -424,7 +426,10 @@ class _SearchPageState extends State<SearchPage> {
                   ),
                 );
                 return CustomScrollView(
-                  slivers: <Widget>[_buildSliverFillAppBarBox(), trendsTagsSliver],
+                  slivers: <Widget>[
+                    _buildSliverFillAppBarBox(),
+                    trendsTagsSliver
+                  ],
                 );
               }
               break;
@@ -488,7 +493,8 @@ class _SearchPageState extends State<SearchPage> {
               debugPrint('-------ConnectionState.active---------');
               break;
             case ConnectionState.done:
-              debugPrint('-------ConnectionState.done---${snapshot.hasData}------');
+              debugPrint(
+                  '-------ConnectionState.done---${snapshot.hasData}------');
               if (snapshot.hasData) {
                 // 当有搜索结果的时候 把数据处理
                 // 并给 WaterFallFlowSearchIllustResult 保存管理

@@ -4,7 +4,8 @@ class LogUitls {
   const LogUitls._();
 
   static void e(String message, {StackTrace? stackTrace}) {
-    _dev.log(message, time: DateTime.now(), stackTrace: StackTrace.current, level: 777);
+    _dev.log(message,
+        time: DateTime.now(), stackTrace: StackTrace.current, level: 777);
   }
 
   static void d(String message) {

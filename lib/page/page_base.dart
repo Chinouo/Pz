@@ -71,7 +71,8 @@ class _MyAppState extends State<MyApp> {
         ],
         supportedLocales: S.delegate.supportedLocales,
         initialRoute: Constant.isLogged ? '/home' : '/login',
-        onGenerateInitialRoutes: (initialRoute) => _handleInitialRoute(initialRoute),
+        onGenerateInitialRoutes: (initialRoute) =>
+            _handleInitialRoute(initialRoute),
         onGenerateRoute: (settings) => _handleCustomRoute(settings),
       ),
     );
@@ -83,8 +84,8 @@ class _MyAppState extends State<MyApp> {
       return [
         // 加上一层MediaQuery 防止键盘弹出 InheritWidget notify 大范围build
         MaterialPageRoute(builder: (context) {
-          final mediaQueryData =
-              MediaQuery.of(context).copyWith(viewInsets: const EdgeInsets.all(0));
+          final mediaQueryData = MediaQuery.of(context)
+              .copyWith(viewInsets: const EdgeInsets.all(0));
           return MediaQuery(
             data: mediaQueryData,
             child: const CustomScaffold(),
@@ -119,8 +120,8 @@ class _MyAppState extends State<MyApp> {
     if (settings.name == '/home') {
       return MaterialPageRoute(
         builder: (context) {
-          final mediaQueryData =
-              MediaQuery.of(context).copyWith(viewInsets: const EdgeInsets.all(0));
+          final mediaQueryData = MediaQuery.of(context)
+              .copyWith(viewInsets: const EdgeInsets.all(0));
           return MediaQuery(
             data: mediaQueryData,
             child: const CustomScaffold(),
@@ -156,9 +157,10 @@ class BlurBottomBarDelegate extends MultiChildLayoutDelegate {
   @override
   void performLayout(Size size) {
     if (hasChild(ScaffoldComponentId.bottomBar)) {
-      final barSize = layoutChild(ScaffoldComponentId.bottomBar, bottomBarConstraint);
-      positionChild(
-          ScaffoldComponentId.bottomBar, Offset(0, size.height - barSize.height));
+      final barSize =
+          layoutChild(ScaffoldComponentId.bottomBar, bottomBarConstraint);
+      positionChild(ScaffoldComponentId.bottomBar,
+          Offset(0, size.height - barSize.height));
     }
 
     if (hasChild(ScaffoldComponentId.body)) {

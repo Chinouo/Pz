@@ -9,6 +9,8 @@ import 'package:all_in_one/component/sliver/loading_more.dart';
 import 'package:all_in_one/generated/l10n.dart';
 import 'package:all_in_one/models/illust/illust.dart';
 import 'package:all_in_one/models/spotlight_article.dart';
+import 'package:all_in_one/page/illust_detail/illust_detail.dart';
+import 'package:animations/animations.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -161,10 +163,17 @@ class _RankingViewState extends State<RankingView> {
                 ),
                 itemBuilder: (context, index) {
                   debugPrint("index:$index  ${illustStore[index].id!}");
-                  return PixivImage(
-                    url: illustStore[index].imageUrls!.medium!,
-                    height: 360,
-                    width: 360,
+                  return OpenContainer(
+                    openBuilder: (context, action) {
+                      return IllustDetail(illust: illustStore[index]);
+                    },
+                    closedBuilder: (context, f) {
+                      return PixivImage(
+                        url: illustStore[index].imageUrls!.medium!,
+                        height: 360,
+                        width: 360,
+                      );
+                    },
                   );
                 },
                 itemCount: illustStore.length,
@@ -340,7 +349,6 @@ class _RecommandViewState extends State<RecommandView> {
     }
   }
 }
-
 
 // class MyHomePage extends StatefulWidget {
 //   const MyHomePage({Key? key}) : super(key: key);

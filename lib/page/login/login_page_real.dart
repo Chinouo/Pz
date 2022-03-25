@@ -90,7 +90,8 @@ class _LoginEntryState extends State<LoginEntry> {
 }
 
 class LoginWebView extends StatefulWidget {
-  const LoginWebView({Key? key, required this.codeChanllenge}) : super(key: key);
+  const LoginWebView({Key? key, required this.codeChanllenge})
+      : super(key: key);
 
   final String codeChanllenge;
 
@@ -128,13 +129,16 @@ class _LoginWebViewState extends State<LoginWebView> {
       ),
       body: InAppWebView(
         initialOptions: InAppWebViewGroupOptions(
-            crossPlatform: InAppWebViewOptions(resourceCustomSchemes: ["pixiv"]),
+            crossPlatform:
+                InAppWebViewOptions(resourceCustomSchemes: ["pixiv"]),
             android: AndroidInAppWebViewOptions(useHybridComposition: true)),
         initialUrlRequest: URLRequest(
             url: Uri.parse(
               "https://app-api.pixiv.net/web/v1/login?code_challenge=${widget.codeChanllenge}&code_challenge_method=S256&client=pixiv-android",
             ),
-            headers: {"User-Agent": "PixivAndroidApp/5.0.155 (Android 6.0; Pixel C)"}),
+            headers: {
+              "User-Agent": "PixivAndroidApp/5.0.155 (Android 6.0; Pixel C)"
+            }),
         onLoadResourceCustomScheme: (controller, url) async {
           if (url.scheme == "pixiv") {
             // 在自定义 scheme 加载前拦截

@@ -75,8 +75,8 @@ class ApiClient {
         // })
       );
 
-    (httpClient.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
-        (client) {
+    (httpClient.httpClientAdapter as DefaultHttpClientAdapter)
+        .onHttpClientCreate = (client) {
       HttpClient httpClient = HttpClient();
       httpClient.badCertificateCallback =
           (X509Certificate cert, String host, int port) {
@@ -87,8 +87,10 @@ class ApiClient {
   }
 
   // 默认获取当日
-  Future<Response> getIllustRanking({String? mode = "day", String? date}) async {
-    return httpClient.get("/v1/illust/ranking?filter=for_android", queryParameters: {
+  Future<Response> getIllustRanking(
+      {String? mode = "day", String? date}) async {
+    return httpClient
+        .get("/v1/illust/ranking?filter=for_android", queryParameters: {
       "mode": mode,
       "date": date,
     });
@@ -114,14 +116,14 @@ class ApiClient {
 
   // 获得推荐的插画
   Future<Response> getRecommend() async {
-    return httpClient
-        .get("/v1/illust/recommended?filter=for_ios&include_ranking_label=true");
+    return httpClient.get(
+        "/v1/illust/recommended?filter=for_ios&include_ranking_label=true");
   }
 
   // 搜索用户 ？
   Future<Response> getSearchUser(String word) async {
-    return httpClient
-        .get("/v1/search/user?filter=for_android", queryParameters: {"word": word});
+    return httpClient.get("/v1/search/user?filter=for_android",
+        queryParameters: {"word": word});
   }
 
   // 推荐用户
