@@ -23,7 +23,15 @@ class MyApp extends StatelessWidget {
 }
 
 class ContainerWrap extends StatefulWidget {
-  const ContainerWrap({Key? key}) : super(key: key);
+  const ContainerWrap({
+    Key? key,
+    required this.closeBuilder,
+    required this.openBuilder,
+  }) : super(key: key);
+
+  final WidgetBuilder closeBuilder;
+
+  final WidgetBuilder openBuilder;
 
   @override
   State<ContainerWrap> createState() => _ContainerWrapState();
@@ -37,24 +45,12 @@ class _ContainerWrapState extends State<ContainerWrap> {
         await Navigator.push(
           context,
           NextRoute(
-            builder: (context) {
-              return ColoredBox(
-                color: Colors.blue,
-                child: Center(
-                  child: MaterialButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: Text("back"),
-                  ),
-                ),
-              );
-            },
+            builder: widget.openBuilder,
             config: _getNextRouteConfig(),
           ),
         );
       },
-      child: Container(color: Colors.amber, height: 300, child: Text("GO NEXT ROUTE")),
+      child: widget.closeBuilder(context),
     );
   }
 

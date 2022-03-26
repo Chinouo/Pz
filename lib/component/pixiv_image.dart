@@ -11,6 +11,7 @@ class PixivImage extends StatelessWidget {
     this.height,
     this.fit = BoxFit.fitWidth,
     this.borderRadius,
+    this.shape = BoxShape.rectangle,
   }) : super(key: key);
 
   final String url;
@@ -18,6 +19,7 @@ class PixivImage extends StatelessWidget {
   final double? width;
   final double? height;
   final BoxFit fit;
+  final BoxShape shape;
 
   final BorderRadius? borderRadius;
 
@@ -30,7 +32,7 @@ class PixivImage extends StatelessWidget {
       headers: header,
       fit: fit,
       borderRadius: borderRadius,
-      shape: BoxShape.rectangle,
+      shape: shape,
     );
   }
 

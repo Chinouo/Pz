@@ -6,6 +6,7 @@ import 'package:all_in_one/api/api_client.dart';
 import 'package:all_in_one/component/illust_card.dart';
 import 'package:all_in_one/component/pixiv_image.dart';
 import 'package:all_in_one/component/sliver/loading_more.dart';
+import 'package:all_in_one/component/transition_route/pin_route_wrap.dart';
 import 'package:all_in_one/generated/l10n.dart';
 import 'package:all_in_one/models/illust/illust.dart';
 import 'package:all_in_one/models/spotlight_article.dart';
@@ -163,6 +164,16 @@ class _RankingViewState extends State<RankingView> {
                 ),
                 itemBuilder: (context, index) {
                   debugPrint("index:$index  ${illustStore[index].id!}");
+
+                  return ContainerWrap(closeBuilder: (context) {
+                    return PixivImage(
+                      url: illustStore[index].imageUrls!.medium!,
+                      height: 360,
+                      width: 360,
+                    );
+                  }, openBuilder: (context) {
+                    return IllustDetail(illust: illustStore[index]);
+                  });
                   return OpenContainer(
                     openBuilder: (context, action) {
                       return IllustDetail(illust: illustStore[index]);

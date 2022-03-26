@@ -3,6 +3,7 @@
 import 'dart:ui';
 
 import 'package:all_in_one/api/api_client.dart';
+import 'package:all_in_one/component/transition_route/clip_scale_route.dart';
 import 'package:all_in_one/constant/constant.dart';
 import 'package:all_in_one/generated/l10n.dart';
 import 'package:all_in_one/page/home/home_page.dart';
@@ -71,8 +72,7 @@ class _MyAppState extends State<MyApp> {
         ],
         supportedLocales: S.delegate.supportedLocales,
         initialRoute: Constant.isLogged ? '/home' : '/login',
-        onGenerateInitialRoutes: (initialRoute) =>
-            _handleInitialRoute(initialRoute),
+        onGenerateInitialRoutes: (initialRoute) => _handleInitialRoute(initialRoute),
         onGenerateRoute: (settings) => _handleCustomRoute(settings),
       ),
     );
@@ -83,9 +83,9 @@ class _MyAppState extends State<MyApp> {
     if (initialRoute == '/home') {
       return [
         // 加上一层MediaQuery 防止键盘弹出 InheritWidget notify 大范围build
-        MaterialPageRoute(builder: (context) {
-          final mediaQueryData = MediaQuery.of(context)
-              .copyWith(viewInsets: const EdgeInsets.all(0));
+        BaseRoute(builder: (context) {
+          final mediaQueryData =
+              MediaQuery.of(context).copyWith(viewInsets: const EdgeInsets.all(0));
           return MediaQuery(
             data: mediaQueryData,
             child: const CustomScaffold(),
@@ -118,10 +118,10 @@ class _MyAppState extends State<MyApp> {
     }
 
     if (settings.name == '/home') {
-      return MaterialPageRoute(
+      return BaseRoute(
         builder: (context) {
-          final mediaQueryData = MediaQuery.of(context)
-              .copyWith(viewInsets: const EdgeInsets.all(0));
+          final mediaQueryData =
+              MediaQuery.of(context).copyWith(viewInsets: const EdgeInsets.all(0));
           return MediaQuery(
             data: mediaQueryData,
             child: const CustomScaffold(),
@@ -157,10 +157,9 @@ class BlurBottomBarDelegate extends MultiChildLayoutDelegate {
   @override
   void performLayout(Size size) {
     if (hasChild(ScaffoldComponentId.bottomBar)) {
-      final barSize =
-          layoutChild(ScaffoldComponentId.bottomBar, bottomBarConstraint);
-      positionChild(ScaffoldComponentId.bottomBar,
-          Offset(0, size.height - barSize.height));
+      final barSize = layoutChild(ScaffoldComponentId.bottomBar, bottomBarConstraint);
+      positionChild(
+          ScaffoldComponentId.bottomBar, Offset(0, size.height - barSize.height));
     }
 
     if (hasChild(ScaffoldComponentId.body)) {
