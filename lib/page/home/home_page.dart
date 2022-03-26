@@ -135,7 +135,7 @@ class _RankingViewState extends State<RankingView> {
   Widget build(BuildContext context) {
     final title = _Header(leadingText: S.of(context).ranking);
     final content = SizedBox(
-      height: 360,
+      height: 200,
       child: FutureBuilder<Response>(
         future: illustFuture,
         builder: ((context, snapshot) {
@@ -165,15 +165,18 @@ class _RankingViewState extends State<RankingView> {
                 itemBuilder: (context, index) {
                   debugPrint("index:$index  ${illustStore[index].id!}");
 
-                  return ContainerWrap(closeBuilder: (context) {
-                    return PixivImage(
-                      url: illustStore[index].imageUrls!.medium!,
-                      height: 360,
-                      width: 360,
-                    );
-                  }, openBuilder: (context) {
-                    return IllustDetail(illust: illustStore[index]);
-                  });
+                  return ContainerWrap(
+                    closeBuilder: (context) {
+                      return PixivImage(
+                        url: illustStore[index].imageUrls!.medium!,
+                        height: 160,
+                        width: 160,
+                      );
+                    },
+                    openBuilder: (context) {
+                      return IllustDetail(illust: illustStore[index]);
+                    },
+                  );
                   return OpenContainer(
                     openBuilder: (context, action) {
                       return IllustDetail(illust: illustStore[index]);
@@ -303,11 +306,13 @@ class _RecommandViewState extends State<RecommandView> {
       ..then((response) {
         storeIllustDataFrom(response);
       })
-      ..whenComplete(() {
-        SchedulerBinding.instance!.addPostFrameCallback((timeStamp) {
-          setState(() {});
-        });
-      });
+      ..whenComplete(
+        () {
+          SchedulerBinding.instance!.addPostFrameCallback((timeStamp) {
+            setState(() {});
+          });
+        },
+      );
   }
 
   final illustStore = <Illust>[];
@@ -320,24 +325,33 @@ class _RecommandViewState extends State<RecommandView> {
   Widget build(BuildContext context) {
     if (illustStore.isEmpty) {
       return const SliverToBoxAdapter(
-          child: SizedBox(
-        height: 360,
-        width: 360,
-      ));
+        child: SizedBox(
+          height: 360,
+          width: 360,
+        ),
+      );
     }
     return SliverWaterfallFlow(
-        gridDelegate: const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          mainAxisSpacing: 16,
-        ),
-        delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            return IllustCard(
-              illust: illustStore[index],
-            );
-          },
-          childCount: illustStore.length,
-        ));
+      gridDelegate: const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 16,
+      ),
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          return ContainerWrap(
+            closeBuilder: (context) {
+              return IllustCard(
+                illust: illustStore[index],
+              );
+            },
+            openBuilder: (context) {
+              return IllustDetail(illust: illustStore[index]);
+            },
+          );
+        },
+        childCount: illustStore.length,
+      ),
+    );
   }
 
   void storeIllustDataFrom(Response response) {
@@ -347,7 +361,7 @@ class _RecommandViewState extends State<RecommandView> {
     }
   }
 
-  // 用于 parent 的 OnRefresh 的调用
+  // 用于 parent 的 onRefresh 的调用
   Future<void> fetchNext() async {
     if (nextUrl != null) {
       Response response = await ApiClient().getNext(nextUrl!);

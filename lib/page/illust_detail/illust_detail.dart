@@ -2,6 +2,8 @@ import 'package:all_in_one/component/illust_card.dart';
 import 'package:all_in_one/component/pixiv_image.dart';
 import 'package:all_in_one/models/comment/comment.dart';
 import 'package:all_in_one/models/illust/illust.dart';
+import 'package:all_in_one/models/illust/tag.dart';
+import 'package:all_in_one/models/trend_tag/trend_tag.dart';
 import 'package:flutter/material.dart';
 import 'package:waterfall_flow/waterfall_flow.dart';
 
@@ -41,7 +43,8 @@ class _IllustDetailState extends State<IllustDetail> {
         IllustInfo(
             viewes: illust.totalView!,
             likes: illust.totalBookmarks!,
-            createDate: illust.createDate.toString())
+            createDate: illust.createDate.toString()),
+        TagsFlow(tags: illust.tags!)
         //CommentSnapShot(),
         //RelatedIllustView(),
       ],
@@ -67,8 +70,19 @@ class _IllustHolderState extends State<IllustHolder> {
   @override
   Widget build(BuildContext context) {
     return SliverToBoxAdapter(
-      child: IllustCard(illust: widget.illust),
-    );
+        child: Stack(children: [
+      IllustCard(illust: widget.illust),
+      Positioned(
+        top: 100,
+        left: 10,
+        child: GestureDetector(
+          child: const Icon(Icons.arrow_back),
+          onTap: () {
+            Navigator.pop(context);
+          },
+        ),
+      ),
+    ]));
   }
 }
 
@@ -135,6 +149,22 @@ class _ArtistSliverState extends State<ArtistSliver> {
       child: ListTile(
         leading: avatar,
         title: Text(widget.artistName),
+      ),
+    );
+  }
+}
+
+class TagsFlow extends StatelessWidget {
+  const TagsFlow({Key? key, required this.tags}) : super(key: key);
+
+  final List<Tag> tags;
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverToBoxAdapter(
+      child: Wrap(
+        spacing: 3,
+        children: [for (var item in tags) Text(item.name!)],
       ),
     );
   }

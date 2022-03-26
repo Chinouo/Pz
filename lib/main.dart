@@ -3,7 +3,6 @@ import 'package:all_in_one/page/page_base.dart';
 import 'package:all_in_one/screen_fit/custom_binding.dart';
 import 'package:all_in_one/screen_fit/screen_fit_util.dart';
 import 'package:all_in_one/util/log_utils.dart';
-import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:all_in_one/constant/hive_boxes.dart';
 

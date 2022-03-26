@@ -64,11 +64,7 @@ class BaseRoute extends ModalRoute {
     if (config == null) {
       return child;
     }
-    if (config != null) {
-      //debugPrint(config.toString());
-      //debugPrint(secondaryAnimation.toString());
-    }
-    debugPrint(config!.routeCenter.begin.toString());
+
     return Transform.translate(
       offset: secondaryAnimation.drive(offset).value,
       child: Transform.scale(
@@ -108,7 +104,7 @@ class NextRoute extends ModalRoute {
   @override
   Widget buildPage(BuildContext context, Animation<double> animation,
       Animation<double> secondaryAnimation) {
-    return builder(context);
+    return Material(child: builder(context));
   }
 
   @override
@@ -136,15 +132,29 @@ class NextRoute extends ModalRoute {
 
   late Tween<Offset> routePosition;
 
+  /// 是否启用overflowBox, 当一个图片很长，Clip的Size小于缩放后的大小时，启用。
+  bool isOverflow = false;
+
   @override
   TickerFuture didPush() {
     var routeSize = MediaQuery.of(navigator!.context).size;
     final initScaleRate = config.rect.width / routeSize.width;
     scale = Tween<double>(begin: initScaleRate, end: 1.0);
     debugPrint("start height:" + (config.rect.height / initScaleRate).toString());
-    clipSize = Tween<Size>(
-        begin: Size(routeSize.width, (config.rect.height / initScaleRate)),
-        end: Size(routeSize.width, (config.rect.height / initScaleRate)));
+
+    // 处理图片过长的情况
+    if ((config.rect.height / initScaleRate) > routeSize.height) {
+      isOverflow = true;
+      clipSize = Tween<Size>(
+          begin: Size(routeSize.width, (config.rect.height / initScaleRate)),
+          end: Size(routeSize.width, (config.rect.height / initScaleRate)));
+    } else {
+      // may can delete
+      isOverflow = false;
+      clipSize = Tween<Size>(
+          begin: Size(routeSize.width, (config.rect.height / initScaleRate)),
+          end: routeSize);
+    }
 
     routePosition = config.routeCenter;
     return super.didPush();
@@ -160,20 +170,29 @@ class NextRoute extends ModalRoute {
   @override
   Widget buildTransitions(BuildContext context, Animation<double> animation,
       Animation<double> secondaryAnimation, Widget child) {
+    Widget? current;
+
+    current = ClipRect(
+      clipper: MyClipper(clipSize: animation.drive(clipSize)),
+      child: child,
+    );
+
+    if (isOverflow) {
+      current = OverflowBox(
+        alignment: Alignment.topLeft,
+        minHeight: clipSize.end!.height,
+        maxHeight: clipSize.end!.height,
+        child: current,
+      );
+    }
+
     return Transform.translate(
       offset: animation.drive(routePosition).value,
       child: ScaleTransition(
-          alignment: Alignment.topLeft,
-          scale: animation.drive(scale),
-          child: OverflowBox(
-            alignment: Alignment.topLeft,
-            minHeight: clipSize.end!.height,
-            maxHeight: clipSize.end!.height,
-            child: ClipRect(
-              clipper: MyClipper(clipSize: animation.drive(clipSize)),
-              child: child,
-            ),
-          )),
+        alignment: Alignment.topLeft,
+        scale: animation.drive(scale),
+        child: current,
+      ),
     );
   }
 }
