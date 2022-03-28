@@ -31,7 +31,7 @@ class BaseRoute extends ModalRoute {
 
   @override
   bool canTransitionTo(TransitionRoute nextRoute) {
-    return true;
+    return nextRoute is NextRoute;
   }
 
   @override
@@ -75,11 +75,6 @@ class BaseRoute extends ModalRoute {
       ),
     );
   }
-
-  @override
-  void didChangeNext(covariant NextRoute? nextRoute) {
-    super.didChangeNext(nextRoute);
-  }
 }
 
 class NextRoute extends ModalRoute {
@@ -118,7 +113,7 @@ class NextRoute extends ModalRoute {
 
   @override
   bool canTransitionFrom(TransitionRoute previousRoute) {
-    return true;
+    return previousRoute is BaseRoute;
   }
 
   @override

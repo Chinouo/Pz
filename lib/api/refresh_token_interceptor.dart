@@ -7,12 +7,16 @@ import 'package:all_in_one/util/log_utils.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
-class TokenInterceptor extends QueuedInterceptor {
+const int _retryMaxCount = 7;
+
+class TokenInterceptor extends Interceptor {
   // The year i typed this line.
   // Only used for initializing.
   static final _initializedDate = DateTime(2021, 3, 17, 21, 05);
 
   DateTime lastRefreshTokenTime = _initializedDate;
+
+  int retryNum = 0;
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
@@ -24,15 +28,18 @@ class TokenInterceptor extends QueuedInterceptor {
     return handler.next(options);
   }
 
-  // Todo: handle token expired.
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
+    // 好不优雅
+    retryNum = 0;
     return handler.next(response);
   }
 
+  // Todo: handle token expired.
   @override
   void onError(DioError err, ErrorInterceptorHandler handler) async {
     if (err.response?.statusCode == HttpStatus.badRequest) {
+      // 处理token 过期
       if (err.response?.data["error"]["message"].contains("OAuth")) {
         // 见 Oauth_error.json 查看
         await _updateTokenIfNeed();
@@ -57,6 +64,30 @@ class TokenInterceptor extends QueuedInterceptor {
       }
     }
 
+    // 处理 可能网不好吧
+    if (err.message.contains("Connection closed before full header was received") &&
+        _retryMaxCount < retryNum) {
+      try {
+        ++retryNum;
+        RequestOptions reqOpt = err.requestOptions;
+        Response response = await ApiClient().httpClient.request(
+              reqOpt.path,
+              data: reqOpt.data,
+              queryParameters: reqOpt.queryParameters,
+              options: Options(
+                method: reqOpt.method,
+                headers: reqOpt.headers,
+                contentType: reqOpt.contentType,
+              ),
+            );
+        return handler.resolve(response);
+      } on DioError catch (e) {
+        LogUitls.e(e.message, stackTrace: e.stackTrace);
+        return handler.reject(e);
+      }
+    }
+
+    // 发太多请求被 ban 了
     if (err.response?.statusCode == HttpStatus.forbidden) {
       LogUitls.e(err.message, stackTrace: err.stackTrace);
     }

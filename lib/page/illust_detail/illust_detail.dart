@@ -1,11 +1,18 @@
+import 'package:all_in_one/api/api_client.dart';
 import 'package:all_in_one/component/illust_card.dart';
 import 'package:all_in_one/component/pixiv_image.dart';
+import 'package:all_in_one/component/sliver/loading_more.dart';
 import 'package:all_in_one/models/comment/comment.dart';
 import 'package:all_in_one/models/illust/illust.dart';
 import 'package:all_in_one/models/illust/tag.dart';
-import 'package:all_in_one/models/trend_tag/trend_tag.dart';
+import 'package:all_in_one/util/log_utils.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:waterfall_flow/waterfall_flow.dart';
+
+const _kViewInset = EdgeInsets.symmetric(horizontal: 28);
 
 class IllustDetail extends StatefulWidget {
   const IllustDetail({
@@ -30,24 +37,36 @@ class _IllustDetailState extends State<IllustDetail> {
 
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
+    return NestedScrollView(
       physics: const BouncingScrollPhysics(),
-      slivers: [
-        IllustHolder(
-          illust: illust,
-        ),
-        ArtistSliver(
-          artistName: illust.user!.name!,
-          avatarUrl: illust.user!.profileImageUrls!.medium!,
-        ),
-        IllustInfo(
-            viewes: illust.totalView!,
-            likes: illust.totalBookmarks!,
-            createDate: illust.createDate.toString()),
-        TagsFlow(tags: illust.tags!)
-        //CommentSnapShot(),
-        //RelatedIllustView(),
-      ],
+      headerSliverBuilder: (context, innerBoxIsScrolled) {
+        return [
+          SliverToBoxAdapter(
+            child: Column(
+              children: [
+                IllustHolder(
+                  illust: illust,
+                ),
+                ArtistSliver(
+                  artistName: illust.user!.name!,
+                  avatarUrl: illust.user!.profileImageUrls!.medium!,
+                ),
+                IllustInfo(
+                    viewes: illust.totalView!,
+                    likes: illust.totalBookmarks!,
+                    createDate: illust.createDate.toString()),
+                TagsFlow(tags: illust.tags!),
+                CommentSnapShot(
+                  comments: [],
+                ),
+              ],
+            ),
+          )
+        ];
+      },
+      body: RelatedIllustView(
+        illustID: illust.id!,
+      ),
     );
   }
 }
@@ -69,8 +88,7 @@ class IllustHolder extends StatefulWidget {
 class _IllustHolderState extends State<IllustHolder> {
   @override
   Widget build(BuildContext context) {
-    return SliverToBoxAdapter(
-        child: Stack(children: [
+    return Stack(children: [
       IllustCard(illust: widget.illust),
       Positioned(
         top: 100,
@@ -82,7 +100,7 @@ class _IllustHolderState extends State<IllustHolder> {
           },
         ),
       ),
-    ]));
+    ]);
   }
 }
 
@@ -108,14 +126,12 @@ class IllustInfo extends StatefulWidget {
 class _IllustInfoState extends State<IllustInfo> {
   @override
   Widget build(BuildContext context) {
-    return SliverToBoxAdapter(
-      child: Row(children: [
-        Expanded(
-            child: Text(
-                "${widget.createDate} views:${widget.viewes} likes:${widget.likes}")),
-        Expanded(child: Icon(Icons.ac_unit_outlined)),
-      ]),
-    );
+    return Row(children: [
+      Expanded(
+          child: Text(
+              "${widget.createDate} views:${widget.viewes} likes:${widget.likes}")),
+      Expanded(child: Icon(Icons.ac_unit_outlined)),
+    ]);
   }
 }
 
@@ -141,15 +157,25 @@ class _ArtistSliverState extends State<ArtistSliver> {
     final avatar = PixivImage(
       shape: BoxShape.circle,
       url: widget.avatarUrl,
-      height: 20,
-      width: 20,
+      height: 47,
+      width: 47,
     );
 
-    return SliverToBoxAdapter(
-      child: ListTile(
-        leading: avatar,
-        title: Text(widget.artistName),
-      ),
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 28),
+      height: 100,
+      color: Colors.blueGrey[100],
+      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+        ClipOval(
+          child: avatar,
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Text(widget.artistName),
+        ),
+        Spacer(),
+        CupertinoButton(child: Text("Follow"), onPressed: () {}),
+      ]),
     );
   }
 }
@@ -161,11 +187,22 @@ class TagsFlow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SliverToBoxAdapter(
-      child: Wrap(
-        spacing: 3,
-        children: [for (var item in tags) Text(item.name!)],
-      ),
+    return Wrap(
+      spacing: 18,
+      children: [
+        for (var item in tags)
+          DecoratedBox(
+            decoration: BoxDecoration(
+              color: Colors.blueGrey[100],
+            ),
+            child: Text(
+              item.name!,
+              style: TextStyle(
+                fontSize: 18,
+              ),
+            ),
+          )
+      ],
     );
   }
 }
@@ -207,13 +244,10 @@ class _CommentSnapShotState extends State<CommentSnapShot> {
 class RelatedIllustView extends StatefulWidget {
   const RelatedIllustView({
     Key? key,
-    required this.relatedWorks,
-    this.nextUrl,
+    required this.illustID,
   }) : super(key: key);
 
-  final List<Illust> relatedWorks;
-
-  final String? nextUrl;
+  final int illustID;
 
   @override
   State<RelatedIllustView> createState() => _RelatedIllustViewState();
@@ -227,12 +261,75 @@ class _RelatedIllustViewState extends State<RelatedIllustView> {
   @override
   void initState() {
     super.initState();
-    relatedWorksStore.addAll(widget.relatedWorks);
-    nextUrl = widget.nextUrl;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return FutureBuilder<Response>(
+      future: ApiClient().getIllustRelated(widget.illustID),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) return const SizedBox.shrink();
+        switch (snapshot.connectionState) {
+          case ConnectionState.done:
+            return buildWaterFallFlow(snapshot.data!);
+          default:
+            return const SizedBox.shrink();
+        }
+      },
+    );
+  }
+
+  Widget buildWaterFallFlow(Response response) {
+    nextUrl = response.data["next_url"];
+
+    for (var item in response.data["illusts"]) {
+      relatedWorksStore.add(Illust.fromJson(item));
+    }
+
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return CustomScrollView(
+          slivers: [
+            SliverWaterfallFlow(
+              delegate: SliverChildBuilderDelegate((context, index) {
+                return IllustCard(illust: relatedWorksStore[index]);
+              }, childCount: relatedWorksStore.length),
+              gridDelegate: const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2),
+            ),
+            LoadingMoreSliver(
+              onRefresh: () async {
+                try {
+                  if (nextUrl == null) return;
+                  Response response = await ApiClient().getNext(nextUrl!);
+                  if (mounted) {
+                    SchedulerBinding.instance?.addPostFrameCallback(
+                      (timeStamp) {
+                        setState(
+                          () {
+                            nextUrl = response.data["next_url"];
+                            for (var item in response.data["illusts"]) {
+                              relatedWorksStore.add(Illust.fromJson(item));
+                            }
+                          },
+                        );
+                      },
+                    );
+                  }
+                } on DioError catch (e) {
+                  LogUitls.e(e.message);
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant RelatedIllustView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    relatedWorksStore.clear();
   }
 }

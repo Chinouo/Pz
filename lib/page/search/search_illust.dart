@@ -73,7 +73,10 @@ class _TrendTagsViewState extends State<TrendTagsView> {
   }
 
   Widget buildErrorWidget(AsyncSnapshot<Response<dynamic>> snapshot) {
-    return Center(child: Text("${snapshot.error}"));
+    return Padding(
+      padding: const EdgeInsets.all(35.0),
+      child: Center(child: Text("${snapshot.error}")),
+    );
   }
 
   Widget buildWaitingWidget() {
@@ -98,8 +101,8 @@ class _TrendTagsViewState extends State<TrendTagsView> {
                 ),
                 childCount: trendTagsStore.length,
               ),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3),
+              gridDelegate:
+                  const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
             ),
           )
         ],
@@ -145,8 +148,7 @@ class _IllustResultViewState extends State<IllustResultView> {
   @override
   void initState() {
     super.initState();
-    _resultFuture =
-        ApiClient().getSearchIllust(widget.words, widget.searchConfig);
+    _resultFuture = ApiClient().getSearchIllust(widget.words, widget.searchConfig);
     //_fetchIllustResult();
   }
 
@@ -179,8 +181,7 @@ class _IllustResultViewState extends State<IllustResultView> {
       prevFuture?.ignore();
       nextUrl = null;
       if (widget.words.isNotEmpty) {
-        _resultFuture =
-            ApiClient().getSearchIllust(widget.words, widget.searchConfig);
+        _resultFuture = ApiClient().getSearchIllust(widget.words, widget.searchConfig);
       }
       // SchedulerBinding.instance!.addPostFrameCallback((timeStamp) {
       //   store.clearStore();
@@ -206,9 +207,8 @@ class _IllustResultViewState extends State<IllustResultView> {
             SliverPadding(
               padding: EdgeInsets.only(top: widget.paddingTop),
               sliver: SliverWaterfallFlow(
-                gridDelegate:
-                    const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2, crossAxisSpacing: 20),
+                gridDelegate: const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2, crossAxisSpacing: 20),
                 delegate: SliverChildBuilderDelegate((context, index) {
                   return IllustCard(illust: _illustStore[index]);
                 }, childCount: _illustStore.length),
@@ -243,7 +243,7 @@ class _IllustResultViewState extends State<IllustResultView> {
   }
 
   Widget _buildErrorWidget(AsyncSnapshot snapshot) {
-    return Center(child: Text("An Error Occoured"));
+    return Center(child: Text("${snapshot.error}"));
   }
 
   void _updateIllustStore(Response response, void Function() setChildState) {

@@ -30,12 +30,10 @@ class _LoadingMoreBottomSliver extends RenderObjectWidget {
 }
 
 class _LoadingMoreBottomSliverElement extends RenderObjectElement {
-  _LoadingMoreBottomSliverElement(_LoadingMoreBottomSliver widget)
-      : super(widget);
+  _LoadingMoreBottomSliverElement(_LoadingMoreBottomSliver widget) : super(widget);
 
   @override
-  _LoadingMoreBottomSliver get widget =>
-      super.widget as _LoadingMoreBottomSliver;
+  _LoadingMoreBottomSliver get widget => super.widget as _LoadingMoreBottomSliver;
 
   @override
   _RenderLoadingMoreSliver get renderObject =>
@@ -141,8 +139,7 @@ class _RenderLoadingMoreSliver extends RenderSliver
         constraints.precedingScrollExtent - constraints.viewportMainAxisExtent;
 
     // the total overscrolled area in viewport.
-    double maxExtent =
-        constraints.remainingPaintExtent - min(constraints.overlap, 0.0);
+    double maxExtent = constraints.remainingPaintExtent - min(constraints.overlap, 0.0);
 
     if (extent <= 0) {
       // we offer overscrolled 0 to builder, but the constraint to passed to
@@ -220,8 +217,7 @@ class LoadingMoreSliver extends StatefulWidget {
 class _LoadingMoreSliverState extends State<LoadingMoreSliver> {
   late LoadingMoreSliverDelegate delegate;
 
-  final loadingStateNotifier =
-      ValueNotifier<RefreshState>(RefreshState.inactive);
+  final loadingStateNotifier = ValueNotifier<RefreshState>(RefreshState.inactive);
 
   @override
   void initState() {
@@ -275,8 +271,7 @@ abstract class LoadingMoreSliverDelegate {
 }
 
 /// Custom Delegate, which have a state machine to handle loading more.
-class _LoadingMoreSliverWithRefreshHandleDelegete
-    extends LoadingMoreSliverDelegate {
+class _LoadingMoreSliverWithRefreshHandleDelegete extends LoadingMoreSliverDelegate {
   _LoadingMoreSliverWithRefreshHandleDelegete({
     required this.maxScrollExtent,
     required this.triggerDistance,
@@ -319,8 +314,7 @@ class _LoadingMoreSliverWithRefreshHandleDelegete
         });
   }
 
-  void handleNextState(
-      ValueNotifier<RefreshState> currentState, double overscrolled) {
+  void handleNextState(ValueNotifier<RefreshState> currentState, double overscrolled) {
     switch (currentState.value) {
       case RefreshState.inactive:
         if (overscrolled < triggerDistance) {

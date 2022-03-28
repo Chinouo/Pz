@@ -28,17 +28,22 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
+    // 水平滑动的内容
+    final horizontalContent = Column(
+      children: const [
+        RankingView(),
+        PivisionView(),
+      ],
+    );
+
     return CustomScrollView(
       physics: const BouncingScrollPhysics(),
       slivers: [
         CupertinoSliverNavigationBar(
           largeTitle: Text(S.of(context).today),
         ),
-        const SliverToBoxAdapter(
-          child: RankingView(),
-        ),
-        const SliverToBoxAdapter(
-          child: PivisionView(),
+        SliverToBoxAdapter(
+          child: horizontalContent,
         ),
         ...buildRecommendView(),
         LoadingMoreSliver(
@@ -155,6 +160,7 @@ class _RankingViewState extends State<RankingView> {
               }
               storeIllustDataFrom(snapshot.data!);
               return GridView.builder(
+                padding: const EdgeInsets.only(left: 24),
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
                 addAutomaticKeepAlives: false,
@@ -162,39 +168,12 @@ class _RankingViewState extends State<RankingView> {
                   crossAxisCount: 1,
                   mainAxisSpacing: 36,
                 ),
-                itemBuilder: (context, index) {
-                  debugPrint("index:$index  ${illustStore[index].id!}");
-
-                  return ContainerWrap(
-                    closeBuilder: (context) {
-                      return PixivImage(
-                        url: illustStore[index].imageUrls!.medium!,
-                        height: 160,
-                        width: 160,
-                      );
-                    },
-                    openBuilder: (context) {
-                      return IllustDetail(illust: illustStore[index]);
-                    },
-                  );
-                  return OpenContainer(
-                    openBuilder: (context, action) {
-                      return IllustDetail(illust: illustStore[index]);
-                    },
-                    closedBuilder: (context, f) {
-                      return PixivImage(
-                        url: illustStore[index].imageUrls!.medium!,
-                        height: 360,
-                        width: 360,
-                      );
-                    },
-                  );
-                },
+                itemBuilder: (context, index) => _buildGridCard(context, index),
                 itemCount: illustStore.length,
               );
             default:
               return const SizedBox(
-                height: 360,
+                height: 200,
               );
           }
         }),
@@ -203,6 +182,25 @@ class _RankingViewState extends State<RankingView> {
 
     return Column(
       children: [title, content],
+    );
+  }
+
+  Widget _buildGridCard(BuildContext context, int index) {
+    return OpenContainer(
+      openBuilder: (context, action) {
+        return IllustDetail(
+          illust: illustStore[index],
+        );
+      },
+      closedBuilder: (context, f) {
+        return PixivImage(
+          fit: BoxFit.cover,
+          url: illustStore[index].imageUrls!.medium!,
+          borderRadius: const BorderRadius.all(Radius.circular(7)),
+          height: 200,
+          width: 200,
+        );
+      },
     );
   }
 
