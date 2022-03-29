@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:all_in_one/api/api_client.dart';
 import 'package:all_in_one/component/illust_card.dart';
 import 'package:all_in_one/component/pixiv_image.dart';
@@ -231,12 +233,17 @@ class _CommentSnapShotState extends State<CommentSnapShot> {
 
   @override
   Widget build(BuildContext context) {
-    return SliverList(
-        delegate: SliverChildBuilderDelegate((context, index) {
-      return ListTile(
-        title: Text(commentStore[index].comment!),
-      );
-    }, childCount: commentStore.length < 4 ? commentStore.length : 3));
+    final size = min(commentStore.length, 3);
+    List<Widget> items = [];
+    for (int i = 0; i < size; ++i) {
+      items.add(ListTile(
+        title: Text(commentStore[0].comment!),
+      ));
+    }
+
+    return Column(
+      children: items,
+    );
   }
 }
 
@@ -289,6 +296,7 @@ class _RelatedIllustViewState extends State<RelatedIllustView> {
     return StatefulBuilder(
       builder: (context, setState) {
         return CustomScrollView(
+          physics: NeverScrollableScrollPhysics(),
           slivers: [
             SliverWaterfallFlow(
               delegate: SliverChildBuilderDelegate((context, index) {
