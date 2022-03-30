@@ -8,12 +8,14 @@ import 'package:all_in_one/models/comment/comment.dart';
 import 'package:all_in_one/models/illust/illust.dart';
 import 'package:all_in_one/models/illust/tag.dart';
 import 'package:all_in_one/util/log_utils.dart';
+import 'package:all_in_one/util/reponse_helper.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:waterfall_flow/waterfall_flow.dart';
 
+// 左右边距
 const _kViewInset = EdgeInsets.symmetric(horizontal: 28);
 
 class IllustDetail extends StatefulWidget {
@@ -28,7 +30,8 @@ class IllustDetail extends StatefulWidget {
   State<IllustDetail> createState() => _IllustDetailState();
 }
 
-class _IllustDetailState extends State<IllustDetail> {
+class _IllustDetailState extends State<IllustDetail>
+    with IllustResponseHelper, CommentResponseHelper {
   late final Illust illust;
 
   @override
@@ -39,43 +42,40 @@ class _IllustDetailState extends State<IllustDetail> {
 
   @override
   Widget build(BuildContext context) {
-    return NestedScrollView(
-      physics: const BouncingScrollPhysics(),
-      headerSliverBuilder: (context, innerBoxIsScrolled) {
-        return [
-          SliverToBoxAdapter(
-            child: Column(
-              children: [
-                IllustHolder(
-                  illust: illust,
-                ),
-                ArtistSliver(
-                  artistName: illust.user!.name!,
-                  avatarUrl: illust.user!.profileImageUrls!.medium!,
-                ),
-                IllustInfo(
-                    viewes: illust.totalView!,
-                    likes: illust.totalBookmarks!,
-                    createDate: illust.createDate.toString()),
-                TagsFlow(tags: illust.tags!),
-                CommentSnapShot(
-                  comments: [],
-                ),
-              ],
-            ),
-          )
-        ];
-      },
-      body: RelatedIllustView(
-        illustID: illust.id!,
-      ),
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Column(
+            children: [
+              IllustHolder(illust: illust),
+              ArtistSnapShot(
+                avatarUrl: illust.user!.profileImageUrls!.medium!,
+                artistName: illust.user!.name!,
+              ),
+              CommentSnapShot(comments: []),
+            ],
+          ),
+        ),
+        RelatedIllustsView(
+          key: relatedViewKey,
+          illustID: illust.id!,
+        ),
+        LoadingMoreSliver(
+          onRefresh: () async {
+            await relatedViewKey.currentState?.handleLoadingMoreIllusts();
+          },
+        )
+      ],
     );
   }
+
+  final relatedViewKey = GlobalKey<_RelatedIllustsViewState>();
 }
 
 // 插画详情
 // 自上而下 图片 -> 日期和浏览数和喜欢数 -> tags ->  作者详情 -> 评论区 -> 相关插画
 
+/// 可能是pageview  可能是单张图片
 class IllustHolder extends StatefulWidget {
   const IllustHolder({
     Key? key,
@@ -138,8 +138,8 @@ class _IllustInfoState extends State<IllustInfo> {
 }
 
 // 作者快照
-class ArtistSliver extends StatefulWidget {
-  const ArtistSliver({
+class ArtistSnapShot extends StatefulWidget {
+  const ArtistSnapShot({
     Key? key,
     required this.avatarUrl,
     required this.artistName,
@@ -150,10 +150,10 @@ class ArtistSliver extends StatefulWidget {
   final String artistName;
 
   @override
-  State<ArtistSliver> createState() => _ArtistSliverState();
+  State<ArtistSnapShot> createState() => _ArtistSnapShotState();
 }
 
-class _ArtistSliverState extends State<ArtistSliver> {
+class _ArtistSnapShotState extends State<ArtistSnapShot> {
   @override
   Widget build(BuildContext context) {
     final avatar = PixivImage(
@@ -248,8 +248,9 @@ class _CommentSnapShotState extends State<CommentSnapShot> {
 }
 
 // 相关类型的插画
-class RelatedIllustView extends StatefulWidget {
-  const RelatedIllustView({
+/// RenderObj is SliverWaterFallFlow
+class RelatedIllustsView extends StatefulWidget {
+  const RelatedIllustsView({
     Key? key,
     required this.illustID,
   }) : super(key: key);
@@ -257,87 +258,71 @@ class RelatedIllustView extends StatefulWidget {
   final int illustID;
 
   @override
-  State<RelatedIllustView> createState() => _RelatedIllustViewState();
+  State<RelatedIllustsView> createState() => _RelatedIllustsViewState();
 }
 
-class _RelatedIllustViewState extends State<RelatedIllustView> {
-  final relatedWorksStore = <Illust>[];
-
-  String? nextUrl;
-
+class _RelatedIllustsViewState extends State<RelatedIllustsView>
+    with IllustResponseHelper {
   @override
   void initState() {
     super.initState();
+    _initialResponse = ApiClient().getIllustRelated(widget.illustID);
   }
+
+  late final Future<Response> _initialResponse;
+
+  bool _isFirstBuild = true;
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Response>(
-      future: ApiClient().getIllustRelated(widget.illustID),
+      future: _initialResponse,
       builder: (context, snapshot) {
-        if (snapshot.hasError) return const SizedBox.shrink();
+        if (snapshot.hasError) {
+          return const SliverToBoxAdapter(child: SizedBox.shrink());
+        }
         switch (snapshot.connectionState) {
           case ConnectionState.done:
             return buildWaterFallFlow(snapshot.data!);
+
           default:
-            return const SizedBox.shrink();
+            return const SliverToBoxAdapter(
+              child: Center(
+                child: CircularProgressIndicator(),
+              ),
+            );
         }
       },
     );
   }
 
   Widget buildWaterFallFlow(Response response) {
-    nextUrl = response.data["next_url"];
-
-    for (var item in response.data["illusts"]) {
-      relatedWorksStore.add(Illust.fromJson(item));
+    if (_isFirstBuild) {
+      storeIllusts(response);
+      _isFirstBuild = false;
     }
 
-    return StatefulBuilder(
-      builder: (context, setState) {
-        return CustomScrollView(
-          physics: NeverScrollableScrollPhysics(),
-          slivers: [
-            SliverWaterfallFlow(
-              delegate: SliverChildBuilderDelegate((context, index) {
-                return IllustCard(illust: relatedWorksStore[index]);
-              }, childCount: relatedWorksStore.length),
-              gridDelegate: const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2),
-            ),
-            LoadingMoreSliver(
-              onRefresh: () async {
-                try {
-                  if (nextUrl == null) return;
-                  Response response = await ApiClient().getNext(nextUrl!);
-                  if (mounted) {
-                    SchedulerBinding.instance?.addPostFrameCallback(
-                      (timeStamp) {
-                        setState(
-                          () {
-                            nextUrl = response.data["next_url"];
-                            for (var item in response.data["illusts"]) {
-                              relatedWorksStore.add(Illust.fromJson(item));
-                            }
-                          },
-                        );
-                      },
-                    );
-                  }
-                } on DioError catch (e) {
-                  LogUitls.e(e.message);
-                }
-              },
-            ),
-          ],
-        );
-      },
+    return SliverWaterfallFlow(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          return IllustCard(illust: illusts[index]);
+        },
+        childCount: illustsCount,
+      ),
+      gridDelegate:
+          const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
     );
   }
 
-  @override
-  void didUpdateWidget(covariant RelatedIllustView oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    relatedWorksStore.clear();
+  Future<void> handleLoadingMoreIllusts() async {
+    try {
+      if (nextUrl == null) return;
+      Response response = await ApiClient().getNext(nextUrl!);
+      setState(() {
+        storeIllusts(response);
+      });
+    } on DioError catch (e) {
+      LogUitls.e(e.response!.data.toString());
+    }
   }
 }
