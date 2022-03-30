@@ -163,6 +163,8 @@ class _SearchResultViewState extends State<SearchResultView> with IllustResponse
   }
 
   Widget buildWaterFallFlow(Response response) {
+    storeIllusts(response);
+
     return StatefulBuilder(
       builder: (context, setState) {
         return CustomScrollView(
@@ -182,12 +184,8 @@ class _SearchResultViewState extends State<SearchResultView> with IllustResponse
               onRefresh: () async {
                 if (nextUrl == null) return;
                 Response nextResponse = await ApiClient().getNext(nextUrl!);
-                SchedulerBinding.instance?.addPersistentFrameCallback((timeStamp) {
-                  if (mounted) {
-                    setState(() {
-                      storeIllusts(nextResponse);
-                    });
-                  }
+                setState(() {
+                  storeIllusts(nextResponse);
                 });
               },
             )

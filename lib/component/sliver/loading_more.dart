@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 
 enum RefreshState {
   inactive,
@@ -324,12 +325,15 @@ class _LoadingMoreSliverWithRefreshHandleDelegete extends LoadingMoreSliverDeleg
 
         isTriggered = true;
         currentState.value = RefreshState.refreshing;
-        onRefresh!().whenComplete(
-          () {
-            isTriggered = false;
-            currentState.value = RefreshState.done;
-          },
-        );
+        SchedulerBinding.instance!.addPostFrameCallback((timeStamp) {
+          onRefresh!().whenComplete(
+            () {
+              isTriggered = false;
+              currentState.value = RefreshState.done;
+            },
+          );
+        });
+
         break;
       case RefreshState.refreshing:
         if (isTriggered) {

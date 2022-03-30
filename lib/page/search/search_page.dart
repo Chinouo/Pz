@@ -268,14 +268,17 @@ class _SearchPageState extends State<SearchPage> {
         child: ValueListenableBuilder<int>(
           valueListenable: selectedSearchTarget,
           builder: (context, index, child) {
-            return LazyIndexedStack(index: index, children: [
-              IllustQueryHistory(
-                textEditingController: textEditingController,
-              ),
-              UserQueryHistory(
-                textEditingController: textEditingController,
-              ),
-            ]);
+            return LazyIndexedStack(
+              index: index,
+              children: [
+                IllustQueryHistory(
+                  textEditingController: textEditingController,
+                ),
+                UserQueryHistory(
+                  textEditingController: textEditingController,
+                ),
+              ],
+            );
           },
         ),
       ),
