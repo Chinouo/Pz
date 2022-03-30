@@ -4,21 +4,15 @@ import 'package:all_in_one/models/illust/tag.dart';
 import 'package:all_in_one/models/spotlight_article.dart';
 import 'package:all_in_one/models/trend_tag/trend_tag.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 
 // List not maintain its length. We do it.
 
-mixin IllustResponseHelper on State {
+mixin IllustResponseHelper<T> {
   final illusts = <Illust>[];
 
   int illustsCount = 0;
 
   String? nextUrl;
-
-  @override
-  void didUpdateWidget(StatefulWidget oldWidget) {
-    super.didUpdateWidget(oldWidget);
-  }
 
   void storeIllusts(Response response) {
     nextUrl = response.data["next_url"];

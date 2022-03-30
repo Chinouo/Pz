@@ -1,6 +1,5 @@
 import 'package:all_in_one/component/pixiv_image.dart';
 import 'package:all_in_one/models/illust/illust.dart';
-import 'package:all_in_one/page/illust_detail/illust_detail.dart';
 import 'package:flutter/cupertino.dart';
 
 /// Api thumbnail offer two aspect ratios.

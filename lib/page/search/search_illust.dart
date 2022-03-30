@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:all_in_one/api/api_client.dart';
 import 'package:all_in_one/component/illust_card.dart';
 import 'package:all_in_one/component/pixiv_image.dart';
@@ -8,6 +7,7 @@ import 'package:all_in_one/constant/search_config.dart';
 import 'package:all_in_one/models/illust/illust.dart';
 import 'package:all_in_one/models/trend_tag/trend_tag.dart';
 import 'package:all_in_one/util/log_utils.dart';
+import 'package:all_in_one/util/reponse_helper.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -113,6 +113,88 @@ class _TrendTagsViewState extends State<TrendTagsView> {
 
   Widget _buildInternalError() {
     return const Center(child: Text("Internal Error"));
+  }
+}
+
+// 重构搜索结果页
+class SearchResultView extends StatefulWidget {
+  const SearchResultView({
+    Key? key,
+    required this.words,
+    required this.searchConfig,
+    required this.paddingTop,
+  }) : super(key: key);
+
+  final String words;
+
+  final SearchConfig searchConfig;
+
+  /// 预留在顶部的高度
+  final double paddingTop;
+  @override
+  State<SearchResultView> createState() => _SearchResultViewState();
+}
+
+class _SearchResultViewState extends State<SearchResultView> with IllustResponseHelper {
+  @override
+  Widget build(BuildContext context) {
+    debugPrint("build Result!");
+    return FutureBuilder<Response>(
+      future: ApiClient().getSearchIllust(
+        widget.words,
+        widget.searchConfig,
+      ),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          LogUitls.e((snapshot.error as DioError).response!.data.toString());
+          return Center(child: Text("Error"));
+        }
+
+        switch (snapshot.connectionState) {
+          case ConnectionState.waiting:
+            return CircularProgressIndicator();
+          case ConnectionState.done:
+            return buildWaterFallFlow(snapshot.data!);
+          default:
+            return SizedBox.shrink();
+        }
+      },
+    );
+  }
+
+  Widget buildWaterFallFlow(Response response) {
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            SliverPadding(
+              padding: EdgeInsets.symmetric(vertical: widget.paddingTop),
+              sliver: SliverWaterfallFlow(
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    return IllustCard(illust: illusts[index]);
+                  }, childCount: illustsCount),
+                  gridDelegate:
+                      const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2)),
+            ),
+            LoadingMoreSliver(
+              onRefresh: () async {
+                if (nextUrl == null) return;
+                Response nextResponse = await ApiClient().getNext(nextUrl!);
+                SchedulerBinding.instance?.addPersistentFrameCallback((timeStamp) {
+                  if (mounted) {
+                    setState(() {
+                      storeIllusts(nextResponse);
+                    });
+                  }
+                });
+              },
+            )
+          ],
+        );
+      },
+    );
   }
 }
 
@@ -292,6 +374,7 @@ class _IllustResultViewState extends State<IllustResultView> {
 }
 
 /// 搜索插画的历史记录
+/// 如果controller 里面没有文字 构建历史记录 否则 构建自动补全词语
 class IllustQueryHistory extends StatefulWidget {
   const IllustQueryHistory({
     Key? key,
@@ -327,5 +410,15 @@ class _IllustQueryHistoryState extends State<IllustQueryHistory> {
         )
       ],
     ));
+  }
+}
+
+// onTap 直接触发submit
+class AutoFillWordsList extends StatelessWidget {
+  const AutoFillWordsList({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container();
   }
 }
