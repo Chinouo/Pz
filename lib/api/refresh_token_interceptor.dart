@@ -58,7 +58,7 @@ class TokenInterceptor extends Interceptor {
               );
           return handler.resolve(response);
         } on DioError catch (e) {
-          LogUitls.e(e.message, stackTrace: e.stackTrace);
+          LogUitls.e(e.message);
           return handler.reject(e);
         }
       }
@@ -82,14 +82,14 @@ class TokenInterceptor extends Interceptor {
             );
         return handler.resolve(response);
       } on DioError catch (e) {
-        LogUitls.e(e.message, stackTrace: e.stackTrace);
+        LogUitls.e(e.message);
         return handler.reject(e);
       }
     }
 
     // 发太多请求被 ban 了
     if (err.response?.statusCode == HttpStatus.forbidden) {
-      LogUitls.e(err.message, stackTrace: err.stackTrace);
+      LogUitls.e(err.message);
     }
 
     return handler.reject(err);
@@ -104,7 +104,7 @@ class TokenInterceptor extends Interceptor {
         ApiClient().httpClient.lock();
         await handleAccessTokenExpired();
       } on DioError catch (e) {
-        LogUitls.e(e.message, stackTrace: e.stackTrace);
+        LogUitls.e(e.message);
         lastRefreshTokenTime = _initializedDate;
       } finally {
         ApiClient().httpClient.unlock();

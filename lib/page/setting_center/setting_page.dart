@@ -1,3 +1,5 @@
+import 'package:all_in_one/constant/hive_boxes.dart';
+import 'package:all_in_one/models/account/user.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -10,9 +12,16 @@ class SettingPage extends StatefulWidget {
 
 class _SettingPageState extends State<SettingPage> {
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final cards = <Widget>[
-      UserAccountCard(),
+      UserAccountCard(
+        account: User(name: "Test"),
+      ),
       Row(
         children: [
           Expanded(flex: 1, child: AppSettingCard()),
@@ -39,7 +48,12 @@ class _SettingPageState extends State<SettingPage> {
 
 // Rect
 class UserAccountCard extends StatefulWidget {
-  const UserAccountCard({Key? key}) : super(key: key);
+  const UserAccountCard({
+    Key? key,
+    required this.account,
+  }) : super(key: key);
+
+  final User account;
 
   @override
   State<UserAccountCard> createState() => _UserAccountCardState();
@@ -48,7 +62,24 @@ class UserAccountCard extends StatefulWidget {
 class _UserAccountCardState extends State<UserAccountCard> {
   @override
   Widget build(BuildContext context) {
-    return Container();
+    HiveBoxes.accountBox.get("myAccount");
+
+    return Container(
+      color: Colors.amber,
+      height: 200,
+      child: Row(
+        children: [
+          ClipOval(
+            child: Container(
+              height: 80,
+              width: 80,
+              color: Colors.black26,
+            ),
+          ),
+          Text(widget.account.name!),
+        ],
+      ),
+    );
   }
 }
 
@@ -63,7 +94,9 @@ class AppSettingCard extends StatefulWidget {
 class _AppSettingCardState extends State<AppSettingCard> {
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return Placeholder(
+      fallbackHeight: 200,
+    );
   }
 }
 
@@ -78,7 +111,9 @@ class Toggle extends StatefulWidget {
 class _ToggleState extends State<Toggle> {
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return Placeholder(
+      fallbackHeight: 200,
+    );
   }
 }
 
@@ -93,6 +128,12 @@ class HistoryCard extends StatefulWidget {
 class _HistoryCardState extends State<HistoryCard> {
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return Container(
+      color: Colors.green,
+      height: 200,
+      child: Center(
+        child: Text("History"),
+      ),
+    );
   }
 }

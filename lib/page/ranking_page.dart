@@ -50,8 +50,10 @@ class _RankingPageState extends State<RankingPage> {
         final double overscrollStart = notification.metrics.pixels;
         if (overscrollStart.isNegative && notification.depth == 0) {
           // 暂时不知道如何拿到Scrollable 里面的AnimaitionController 只能这样拙劣的模拟
-          if (titleFontSize.value != (overscrollStart.abs() / 10).clamp(0, 28) + 36)
-            titleFontSize.value = (overscrollStart.abs() / 10).clamp(0, 28) + 36;
+          if (titleFontSize.value !=
+              (overscrollStart.abs() / 10).clamp(0, 28) + 36)
+            titleFontSize.value =
+                (overscrollStart.abs() / 10).clamp(0, 28) + 36;
         }
 
         if (isLoading.value) {
@@ -60,7 +62,8 @@ class _RankingPageState extends State<RankingPage> {
         // 判断是否触底了
         if (notification.metrics.extentAfter == 0) {
           //debugPrint(recentOverScroll.toString());
-          if (notification.metrics.pixels - notification.metrics.maxScrollExtent >
+          if (notification.metrics.pixels -
+                  notification.metrics.maxScrollExtent >
               kMaxOverScrollValue) {
             if (!isLoading.value) {
               _loadMoreRecommand();
@@ -215,7 +218,8 @@ class _RankingPageState extends State<RankingPage> {
                   (_, index) {
                     debugPrint("rank img idx: $index");
                     return PixivImage(
-                      url: illustProvider.collection[index].imageUrls!.squareMedium!,
+                      url: illustProvider
+                          .collection[index].imageUrls!.squareMedium!,
                       width: 180,
                       height: 180,
                     );
@@ -223,7 +227,9 @@ class _RankingPageState extends State<RankingPage> {
                   childCount: imgCollection.length,
                 ),
                 gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    mainAxisExtent: 180, mainAxisSpacing: 17, maxCrossAxisExtent: 225)),
+                    mainAxisExtent: 180,
+                    mainAxisSpacing: 17,
+                    maxCrossAxisExtent: 225)),
           ),
         ],
       );
@@ -346,8 +352,8 @@ class _RankingPageState extends State<RankingPage> {
       ),
     );
 
-    final Widget body =
-        Consumer<RecommandProvider>(builder: (context, recommandProvider, child) {
+    final Widget body = Consumer<RecommandProvider>(
+        builder: (context, recommandProvider, child) {
       final imgCollection = recommandProvider.collection;
       if (imgCollection.isEmpty) {
         return const SliverToBoxAdapter(
@@ -368,8 +374,8 @@ class _RankingPageState extends State<RankingPage> {
             height: height,
           );
         }, childCount: imgCollection.length),
-        gridDelegate:
-            const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
+        gridDelegate: const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2),
       );
     });
 
@@ -413,5 +419,3 @@ class _RankingPageState extends State<RankingPage> {
 //     return oldPosition.pixels;
 //   }
 // }
-
-

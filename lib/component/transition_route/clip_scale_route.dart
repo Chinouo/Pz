@@ -55,7 +55,8 @@ class BaseRoute extends ModalRoute {
 
     final routeSize = MediaQuery.of(navigator!.context).size;
 
-    scale = Tween<double>(begin: 1.0, end: routeSize.width / config!.rect.size.width);
+    scale = Tween<double>(
+        begin: 1.0, end: routeSize.width / config!.rect.size.width);
   }
 
   @override
@@ -135,7 +136,8 @@ class NextRoute extends ModalRoute {
     var routeSize = MediaQuery.of(navigator!.context).size;
     final initScaleRate = config.rect.width / routeSize.width;
     scale = Tween<double>(begin: initScaleRate, end: 1.0);
-    debugPrint("start height:" + (config.rect.height / initScaleRate).toString());
+    debugPrint(
+        "start height:" + (config.rect.height / initScaleRate).toString());
 
     // 处理图片过长的情况
     if ((config.rect.height / initScaleRate) > routeSize.height) {

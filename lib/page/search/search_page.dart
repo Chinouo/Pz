@@ -453,8 +453,8 @@ class _TagGridState extends State<TagGrid> {
                 return PixivImage(
                     url: tagCollection[index].illust!.imageUrls!.squareMedium!);
               }, childCount: tagCollection.length),
-              gridDelegate:
-                  const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3),
             )
           ],
         );
@@ -505,12 +505,12 @@ class _CupertinoSearchPageState extends State<CupertinoSearchPage> {
                       );
                     },
                     child: CupertinoTextField(
-                      decoration:
-                          BoxDecoration(color: CupertinoColors.tertiarySystemFill),
+                      decoration: BoxDecoration(
+                          color: CupertinoColors.tertiarySystemFill),
                       readOnly: true,
                       onTap: () {
-                        Navigator.push(
-                            context, MaterialPageRoute(builder: (_) => SearchResult()));
+                        Navigator.push(context,
+                            MaterialPageRoute(builder: (_) => SearchResult()));
                       },
                     )),
               ),
@@ -593,8 +593,8 @@ class _CupertinoSearchPageState extends State<CupertinoSearchPage> {
             ),
             GridView.builder(
                 itemCount: _searchResult.length,
-                gridDelegate:
-                    SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3),
                 itemBuilder: (context, index) {
                   if (_searchResult.isNotEmpty)
                     return PixivImage(
@@ -657,8 +657,8 @@ class _SearchResultState extends State<SearchResult> {
                     tag: "Q",
                     child: CupertinoSearchTextField(
                       autofocus: true,
-                      decoration:
-                          BoxDecoration(color: CupertinoColors.tertiarySystemFill),
+                      decoration: BoxDecoration(
+                          color: CupertinoColors.tertiarySystemFill),
                       onChanged: (value) {
                         api.getSearchAutoCompleteKeywords(value);
                         setState(() {
@@ -760,8 +760,8 @@ class _SearchResultState extends State<SearchResult> {
       }
     }));
     return WaterfallFlow.builder(
-        gridDelegate:
-            SliverWaterfallFlowDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
+        gridDelegate: SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2),
         itemBuilder: (context, index) {
           return Container(
             color: Colors.primaries[index % 18],
@@ -798,7 +798,8 @@ class _SearchFilterState extends State<SearchFilter> {
           bottom: false,
           top: false,
           child: SizedBox.expand(
-            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            child:
+                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
               _buildTagSelector(),
               _buildTagSelector(),
               Row(

@@ -74,7 +74,8 @@ const _kHeaderLeadingTextStyle = TextStyle(
   fontWeight: FontWeight.bold,
 );
 
-const _kHomePageViewPadding = EdgeInsets.symmetric(horizontal: 29.0, vertical: 18.0);
+const _kHomePageViewPadding =
+    EdgeInsets.symmetric(horizontal: 29.0, vertical: 18.0);
 
 class _Header extends StatelessWidget {
   const _Header({

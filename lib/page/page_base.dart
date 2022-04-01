@@ -9,13 +9,8 @@ import 'package:all_in_one/generated/l10n.dart';
 import 'package:all_in_one/page/home/home_page.dart';
 import 'package:all_in_one/page/login/login_page_real.dart';
 import 'package:all_in_one/page/search/search_page.dart';
-import 'package:all_in_one/page/user/user_setting_page.dart';
-import 'package:all_in_one/provider/illust_rank_provider.dart';
-import 'package:all_in_one/provider/pivision_provider.dart';
-import 'package:all_in_one/provider/recommand_illust_provider.dart';
+import 'package:all_in_one/page/setting_center/setting_page.dart';
 import 'package:all_in_one/provider/search_provider/illusts_search_provider.dart';
-import 'package:all_in_one/provider/search_provider/user_search_provider.dart';
-import 'package:all_in_one/provider/trend_tag_provider.dart';
 import 'package:all_in_one/screen_fit/media_query_wrap.dart';
 import 'package:all_in_one/util/log_utils.dart';
 import 'package:all_in_one/widgets/b2t_cupertino_route.dart';
@@ -248,7 +243,9 @@ class _CustomScaffoldState extends State<CustomScaffold> {
                 SettingPage(),
               ],
             )),
-        LayoutId(id: ScaffoldComponentId.bottomBar, child: tabBar)
+        LayoutId(
+            id: ScaffoldComponentId.bottomBar,
+            child: Opacity(opacity: 0, child: tabBar))
       ],
       delegate: BlurBottomBarDelegate(
         bottomBarConstraint: BoxConstraints.tight(

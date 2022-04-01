@@ -1,5 +1,5 @@
 // 推荐用户
-import 'package:all_in_one/models/user/user.dart';
+import 'package:all_in_one/models/illust/user.dart';
 import 'package:flutter/material.dart';
 
 /// 推荐用户 listview

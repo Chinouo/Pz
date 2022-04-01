@@ -146,13 +146,13 @@ class _SearchResultViewState extends State<SearchResultView> with IllustResponse
       ),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          LogUitls.e((snapshot.error as DioError).response!.data.toString());
+          LogUitls.e(snapshot.error.toString());
           return Center(child: Text("Error"));
         }
 
         switch (snapshot.connectionState) {
           case ConnectionState.waiting:
-            return CircularProgressIndicator();
+            return Center(child: CircularProgressIndicator());
           case ConnectionState.done:
             return buildWaterFallFlow(snapshot.data!);
           default:
@@ -171,14 +171,18 @@ class _SearchResultViewState extends State<SearchResultView> with IllustResponse
           physics: const BouncingScrollPhysics(),
           slivers: [
             SliverPadding(
-              padding: EdgeInsets.symmetric(vertical: widget.paddingTop),
+              padding:
+                  EdgeInsets.symmetric(vertical: widget.paddingTop, horizontal: 18),
               sliver: SliverWaterfallFlow(
                   delegate: SliverChildBuilderDelegate((context, index) {
                     return IllustCard(illust: illusts[index]);
                   }, childCount: illustsCount),
                   gridDelegate:
                       const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2)),
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 7,
+                    mainAxisSpacing: 7,
+                  )),
             ),
             LoadingMoreSliver(
               onRefresh: () async {
@@ -285,10 +289,12 @@ class _IllustResultViewState extends State<IllustResultView> {
           physics: const BouncingScrollPhysics(),
           slivers: [
             SliverPadding(
-              padding: EdgeInsets.only(top: widget.paddingTop),
+              padding: EdgeInsets.only(top: widget.paddingTop, left: 28, right: 28),
               sliver: SliverWaterfallFlow(
                 gridDelegate: const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2, crossAxisSpacing: 20),
+                  crossAxisCount: 20,
+                  mainAxisSpacing: 20,
+                ),
                 delegate: SliverChildBuilderDelegate((context, index) {
                   return IllustCard(illust: _illustStore[index]);
                 }, childCount: _illustStore.length),

@@ -81,7 +81,8 @@ class Illust {
         series: json['series'] as dynamic,
         metaSinglePage: json['meta_single_page'] == null
             ? null
-            : MetaSinglePage.fromJson(json['meta_single_page'] as Map<String, dynamic>),
+            : MetaSinglePage.fromJson(
+                json['meta_single_page'] as Map<String, dynamic>),
         metaPages: json['meta_pages'] as List<dynamic>?,
         totalView: json['total_view'] as int?,
         totalBookmarks: json['total_bookmarks'] as int?,
