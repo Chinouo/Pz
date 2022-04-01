@@ -1,16 +1,35 @@
-# all_in_one
+# I don't know
 
-A new Flutter project.
+A third party pixiv client built with Flutter. 
 
-## Getting Started
+## It hasn't started yet.
 
-This project is a starting point for a Flutter application.
+- [My Blog: Chinouo - Juejin.cn](https://juejin.cn/user/686529759155432)
 
-A few resources to get you started if this is your first Flutter project:
+This project is not release and still under programing. 
+I prefer using less package ( exclude some native and base packages, for example database, network, webview ...) and wrting some widgets on my own.
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+Thanks to projects `openJMU` & `PixEz-Flutter`. Some code cames from their repository.
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Current Useful Widgets:
+
+- ScreenFitWidth: This is implement via modifying devicePixelRation. See `screen_fit` folder for details.
+
+- RouteAnimation: Like offical animations and hero, but i combined these two effects on my own. See 'component/transitiom_route' for more. 
+
+- LoadMoreSliver: It is a big step forward for me, loading more with `BouncingScrollPhysics` and matains a state machine. 
+
+
+# Snapshot
+
+### HomePage
+
+![HomePage](/demo/homepage.gif)
+
+### SearchPage
+
+![HomePage](/demo/searchpage.gif)
+
+# Roadmap
+
+Try to release first.

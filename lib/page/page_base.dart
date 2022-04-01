@@ -13,7 +13,7 @@ import 'package:all_in_one/page/setting_center/setting_page.dart';
 import 'package:all_in_one/provider/search_provider/illusts_search_provider.dart';
 import 'package:all_in_one/screen_fit/media_query_wrap.dart';
 import 'package:all_in_one/util/log_utils.dart';
-import 'package:all_in_one/widgets/b2t_cupertino_route.dart';
+import 'package:all_in_one/component/transition_route/b2t_cupertino_route.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -243,9 +243,7 @@ class _CustomScaffoldState extends State<CustomScaffold> {
                 SettingPage(),
               ],
             )),
-        LayoutId(
-            id: ScaffoldComponentId.bottomBar,
-            child: Opacity(opacity: 0, child: tabBar))
+        LayoutId(id: ScaffoldComponentId.bottomBar, child: tabBar)
       ],
       delegate: BlurBottomBarDelegate(
         bottomBarConstraint: BoxConstraints.tight(
