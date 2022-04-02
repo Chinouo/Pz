@@ -1,5 +1,4 @@
 import 'dart:math';
-
 import 'package:all_in_one/api/api_client.dart';
 import 'package:all_in_one/component/illust_card.dart';
 import 'package:all_in_one/component/pixiv_image.dart';
@@ -7,13 +6,15 @@ import 'package:all_in_one/component/sliver/loading_more.dart';
 import 'package:all_in_one/models/comment/comment.dart';
 import 'package:all_in_one/models/illust/illust.dart';
 import 'package:all_in_one/models/illust/tag.dart';
+import 'package:all_in_one/page/illust_detail/illust_comment.dart';
 import 'package:all_in_one/util/log_utils.dart';
 import 'package:all_in_one/util/reponse_helper.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:waterfall_flow/waterfall_flow.dart';
+
+import 'illust_related.dart';
 
 // 左右边距
 const _kViewInset = EdgeInsets.symmetric(horizontal: 28);
@@ -52,24 +53,28 @@ class _IllustDetailState extends State<IllustDetail>
                 avatarUrl: illust.user!.profileImageUrls!.medium!,
                 artistName: illust.user!.name!,
               ),
-              CommentSnapShot(comments: []),
             ],
           ),
         ),
+        IllustCommentCard(illustID: illust.id!),
         RelatedIllustsView(
           key: relatedViewKey,
           illustID: illust.id!,
         ),
         LoadingMoreSliver(
           onRefresh: () async {
-            await relatedViewKey.currentState?.handleLoadingMoreIllusts();
+            if (mounted &&
+                relatedViewKey.currentState != null &&
+                relatedViewKey.currentState!.mounted) {
+              await relatedViewKey.currentState?.handleLoadingMoreIllusts();
+            }
           },
         )
       ],
     );
   }
 
-  final relatedViewKey = GlobalKey<_RelatedIllustsViewState>();
+  final relatedViewKey = GlobalKey<RelatedIllustsViewState>();
 }
 
 // 插画详情
@@ -244,85 +249,5 @@ class _CommentSnapShotState extends State<CommentSnapShot> {
     return Column(
       children: items,
     );
-  }
-}
-
-// 相关类型的插画
-/// RenderObj is SliverWaterFallFlow
-class RelatedIllustsView extends StatefulWidget {
-  const RelatedIllustsView({
-    Key? key,
-    required this.illustID,
-  }) : super(key: key);
-
-  final int illustID;
-
-  @override
-  State<RelatedIllustsView> createState() => _RelatedIllustsViewState();
-}
-
-class _RelatedIllustsViewState extends State<RelatedIllustsView>
-    with IllustResponseHelper {
-  @override
-  void initState() {
-    super.initState();
-    _initialResponse = ApiClient().getIllustRelated(widget.illustID);
-  }
-
-  late final Future<Response> _initialResponse;
-
-  bool _isFirstBuild = true;
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<Response>(
-      future: _initialResponse,
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return const SliverToBoxAdapter(child: SizedBox.shrink());
-        }
-        switch (snapshot.connectionState) {
-          case ConnectionState.done:
-            return buildWaterFallFlow(snapshot.data!);
-
-          default:
-            return const SliverToBoxAdapter(
-              child: Center(
-                child: CircularProgressIndicator(),
-              ),
-            );
-        }
-      },
-    );
-  }
-
-  Widget buildWaterFallFlow(Response response) {
-    if (_isFirstBuild) {
-      storeIllusts(response);
-      _isFirstBuild = false;
-    }
-
-    return SliverWaterfallFlow(
-      delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          return IllustCard(illust: illusts[index]);
-        },
-        childCount: illustsCount,
-      ),
-      gridDelegate:
-          const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
-    );
-  }
-
-  Future<void> handleLoadingMoreIllusts() async {
-    try {
-      if (nextUrl == null) return;
-      Response response = await ApiClient().getNext(nextUrl!);
-      setState(() {
-        storeIllusts(response);
-      });
-    } on DioError catch (e) {
-      LogUitls.e(e.response!.data.toString());
-    }
   }
 }
