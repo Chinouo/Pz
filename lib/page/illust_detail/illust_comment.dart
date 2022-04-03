@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:all_in_one/api/api_client.dart';
 import 'package:all_in_one/component/pixiv_image.dart';
+import 'package:all_in_one/util/log_utils.dart';
 import 'package:all_in_one/util/reponse_helper.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/scheduler.dart';
@@ -42,14 +43,18 @@ class _IllustCommentCardState extends State<IllustCommentCard>
   }
 
   void _fetchComment() {
-    ApiClient().getIllustComments(widget.illustID).then((Response response) {
-      assert(SchedulerBinding.instance != null);
-      storeComments(response);
-      final needBuildCnt = min(commentsCount, 4);
-      for (int i = 0; i < needBuildCnt; ++i) {
-        _key.currentState?.insertItem(i);
-      }
-    }); // beatriful curly ...
+    try {
+      ApiClient().getIllustComments(widget.illustID).then((Response response) {
+        assert(SchedulerBinding.instance != null);
+        storeComments(response);
+        final needBuildCnt = min(commentsCount, 4);
+        for (int i = 0; i < needBuildCnt; ++i) {
+          _key.currentState?.insertItem(i);
+        }
+      }); // beatriful curly ...
+    } on DioError catch (e) {
+      LogUitls.e("#_IllustCommentCardState(_fetchComment): ${e.message}");
+    }
   }
 
   Widget _buildAnimatedCard(Animation<double> animation, int index) {
