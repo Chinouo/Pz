@@ -1,6 +1,7 @@
 // 相关类型的插画
 import 'package:all_in_one/api/api_client.dart';
 import 'package:all_in_one/component/illust_card.dart';
+import 'package:all_in_one/constant/constant.dart';
 import 'package:all_in_one/util/log_utils.dart';
 import 'package:all_in_one/util/reponse_helper.dart';
 import 'package:dio/dio.dart';
@@ -62,15 +63,18 @@ class RelatedIllustsViewState extends State<RelatedIllustsView>
       _isFirstBuild = false;
     }
 
-    return SliverWaterfallFlow(
-      delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          return IllustCard(illust: illusts[index]);
-        },
-        childCount: illustsCount,
+    return SliverPadding(
+      padding: Constant.kViewPaddingHoriziontal,
+      sliver: SliverWaterfallFlow(
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            return IllustCard(illust: illusts[index]);
+          },
+          childCount: illustsCount,
+        ),
+        gridDelegate: const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2, crossAxisSpacing: 17),
       ),
-      gridDelegate:
-          const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
     );
   }
 

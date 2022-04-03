@@ -3,11 +3,12 @@ import 'dart:math';
 
 import 'package:all_in_one/api/api_client.dart';
 import 'package:all_in_one/component/pixiv_image.dart';
+import 'package:all_in_one/constant/constant.dart';
 import 'package:all_in_one/util/log_utils.dart';
 import 'package:all_in_one/util/reponse_helper.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter/widgets.dart';
 
 class IllustCommentCard extends StatefulWidget {
   const IllustCommentCard({
@@ -57,30 +58,45 @@ class _IllustCommentCardState extends State<IllustCommentCard>
     }
   }
 
+  // TODO: May out of range.
   Widget _buildAnimatedCard(Animation<double> animation, int index) {
-    final name = Text(comments[index].user!.name!);
+    assert(index < commentsCount);
+    final name = Text(
+      comments[index].user!.name!,
+      overflow: TextOverflow.ellipsis,
+    );
+
     final proImg = ClipOval(
       child: PixivImage(
         url: comments[index].user!.profileImageUrls!.medium!,
-        height: 17,
-        width: 17,
+        height: 47,
+        width: 47,
       ),
     );
 
     final result = DecoratedBox(
-      decoration: BoxDecoration(
-        border: Border.all(width: 1),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              name,
-              proImg,
-            ],
-          ),
-          Text(comments[index].comment!),
-        ],
+      decoration: const BoxDecoration(
+          border: Border(top: BorderSide(color: CupertinoColors.inactiveGray))),
+      child: Padding(
+        padding: Constant.kViewPaddingHoriziontal,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                children: [
+                  proImg,
+                  name,
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(comments[index].comment!),
+            ),
+          ],
+        ),
       ),
     );
 

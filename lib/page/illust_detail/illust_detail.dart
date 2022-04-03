@@ -3,6 +3,7 @@ import 'package:all_in_one/api/api_client.dart';
 import 'package:all_in_one/component/illust_card.dart';
 import 'package:all_in_one/component/pixiv_image.dart';
 import 'package:all_in_one/component/sliver/loading_more.dart';
+import 'package:all_in_one/constant/constant.dart';
 import 'package:all_in_one/models/comment/comment.dart';
 import 'package:all_in_one/models/illust/illust.dart';
 import 'package:all_in_one/models/illust/tag.dart';
@@ -15,9 +16,6 @@ import 'package:flutter/material.dart';
 import 'package:waterfall_flow/waterfall_flow.dart';
 
 import 'illust_related.dart';
-
-// 左右边距
-const _kViewInset = EdgeInsets.symmetric(horizontal: 28);
 
 class IllustDetail extends StatefulWidget {
   const IllustDetail({
@@ -43,33 +41,59 @@ class _IllustDetailState extends State<IllustDetail>
 
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      slivers: [
-        SliverToBoxAdapter(
-          child: Column(
-            children: [
-              IllustHolder(illust: illust),
-              ArtistSnapShot(
-                avatarUrl: illust.user!.profileImageUrls!.medium!,
-                artistName: illust.user!.name!,
+    return Stack(
+      children: [
+        ColoredBox(
+          color: CupertinoColors.lightBackgroundGray,
+          child: CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: Column(
+                  children: [
+                    IllustHolder(illust: illust),
+                    ArtistSnapShot(
+                      avatarUrl: illust.user!.profileImageUrls!.medium!,
+                      artistName: illust.user!.name!,
+                    ),
+                  ],
+                ),
               ),
+              IllustCommentCard(illustID: illust.id!),
+              const SliverToBoxAdapter(
+                child: Center(
+                    child: Text(
+                  "More like this",
+                  textScaleFactor: 2,
+                )),
+              ),
+              RelatedIllustsView(
+                key: relatedViewKey,
+                illustID: illust.id!,
+              ),
+              LoadingMoreSliver(
+                onRefresh: () async {
+                  if (mounted &&
+                      relatedViewKey.currentState != null &&
+                      relatedViewKey.currentState!.mounted) {
+                    await relatedViewKey.currentState?.handleLoadingMoreIllusts();
+                  }
+                },
+              )
             ],
           ),
         ),
-        IllustCommentCard(illustID: illust.id!),
-        RelatedIllustsView(
-          key: relatedViewKey,
-          illustID: illust.id!,
+        Positioned(
+          top: 70,
+          left: 28,
+          child: GestureDetector(
+            child: ColoredBox(
+                color: Colors.blueAccent.withOpacity(0.8),
+                child: const Icon(Icons.arrow_back)),
+            onTap: () {
+              Navigator.pop(context);
+            },
+          ),
         ),
-        LoadingMoreSliver(
-          onRefresh: () async {
-            if (mounted &&
-                relatedViewKey.currentState != null &&
-                relatedViewKey.currentState!.mounted) {
-              await relatedViewKey.currentState?.handleLoadingMoreIllusts();
-            }
-          },
-        )
       ],
     );
   }
@@ -80,7 +104,8 @@ class _IllustDetailState extends State<IllustDetail>
 // 插画详情
 // 自上而下 图片 -> 日期和浏览数和喜欢数 -> tags ->  作者详情 -> 评论区 -> 相关插画
 
-/// 可能是pageview  可能是单张图片
+/// 数量取决于 json 的 page_count
+/// 不要加载原图 不然等太久
 class IllustHolder extends StatefulWidget {
   const IllustHolder({
     Key? key,
@@ -93,21 +118,50 @@ class IllustHolder extends StatefulWidget {
 }
 
 class _IllustHolderState extends State<IllustHolder> {
+  List<Map<String, String>>? pagesStore;
+
   @override
   Widget build(BuildContext context) {
-    return Stack(children: [
-      IllustCard(illust: widget.illust),
-      Positioned(
-        top: 100,
-        left: 10,
-        child: GestureDetector(
-          child: const Icon(Icons.arrow_back),
-          onTap: () {
-            Navigator.pop(context);
-          },
-        ),
+    if (widget.illust.pageCount! > 1) {
+      return _buildMultiIllustsView(widget.illust);
+    } else {
+      return _buildSingleIllustView(widget.illust);
+    }
+  }
+
+  Widget _buildSingleIllustView(Illust illust) {
+    final height = illust.height!.toDouble();
+    final width = illust.width!.toDouble();
+
+    bool isLongImg = height / width > 1 ? true : false;
+
+    return AspectRatio(
+      aspectRatio: width / height,
+      child: PixivImage(
+        url: illust.imageUrls!.large!,
+        width: width,
+        height: height,
+        fit: isLongImg ? BoxFit.fitHeight : BoxFit.fitWidth,
       ),
-    ]);
+    );
+  }
+
+  Widget _buildMultiIllustsView(Illust illust) {
+    final height = illust.height!.toDouble();
+    final width = illust.width!.toDouble();
+
+    pagesStore = List<Map<String, String>>.from(illust.metaPages!);
+
+    bool isLongImg = height / width > 1 ? true : false;
+
+    return SizedBox(
+      height: 500,
+      child: AspectRatio(
+          aspectRatio: width / height,
+          child: PageView.builder(itemBuilder: (context, index) {
+            return PixivImage(url: pagesStore![index]["large"]!);
+          })),
+    );
   }
 }
 
@@ -169,7 +223,7 @@ class _ArtistSnapShotState extends State<ArtistSnapShot> {
     );
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 28),
+      padding: Constant.kViewPaddingHoriziontal,
       height: 100,
       color: Colors.blueGrey[100],
       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -180,8 +234,12 @@ class _ArtistSnapShotState extends State<ArtistSnapShot> {
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Text(widget.artistName),
         ),
-        Spacer(),
-        CupertinoButton(child: Text("Follow"), onPressed: () {}),
+        SizedBox(
+            width: 70,
+            child: CupertinoButton(
+              child: const Icon(CupertinoIcons.add_circled_solid),
+              onPressed: () {},
+            )),
       ]),
     );
   }
