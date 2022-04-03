@@ -14,12 +14,12 @@ class RankIllustCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         PixivImage(
           url: illust.imageUrls!.squareMedium!,
           fit: BoxFit.cover,
           height: 180,
-          width: 180,
         ),
         Text(
           illust.title!,
@@ -41,13 +41,15 @@ class PivisionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AspectRatio(
-          aspectRatio: 3 / 4,
+          aspectRatio: 2,
           child: PixivImage(
             url: spotlightArticle.thumbnail!,
-            width: 400,
-            height: 300,
+            fit: BoxFit.fitWidth,
+            height: 220,
           ),
         ),
         Text(
