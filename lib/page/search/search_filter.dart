@@ -52,11 +52,10 @@ class _FilterState extends State<Filter> {
       ],
     );
 
-    final size = MediaQuery.of(context).size;
+    //final size = MediaQuery.of(context).size;
 
     final searchTargetSelector = <String, Widget>{
-      searchTargets[0]:
-          Center(child: Text(S.of(context).partial_match_for_tags)),
+      searchTargets[0]: Center(child: Text(S.of(context).partial_match_for_tags)),
       searchTargets[1]: Center(child: Text(S.of(context).exact_match_for_tags)),
       searchTargets[2]: Center(child: Text(S.of(context).title_and_caption)),
     };
@@ -69,7 +68,7 @@ class _FilterState extends State<Filter> {
 
     final searchTargetSegment = CupertinoSlidingSegmentedControl<String>(
         children: searchTargetSelector,
-        groupValue: config.target,
+        //groupValue: config.target,
         onValueChanged: (String? value) {
           debugPrint("select $value");
           config.target = value ?? searchTargets[0];
@@ -77,7 +76,7 @@ class _FilterState extends State<Filter> {
 
     final illustsSortSegment = CupertinoSlidingSegmentedControl<String>(
         children: sortSelector,
-        groupValue: config.sort,
+        //groupValue: config.sort,
         onValueChanged: (String? value) {
           debugPrint("select $value");
           config.target = value ?? illustsSort[0];
@@ -89,6 +88,7 @@ class _FilterState extends State<Filter> {
             "${config.startDate.month}-${config.startDate.day}-${config.startDate.year}"),
         onPressed: () async {
           DateTime? selectorTime = await showCupertinoModalPopup<DateTime>(
+              useRootNavigator: false,
               barrierDismissible: false,
               context: context,
               builder: (context) {
@@ -116,6 +116,7 @@ class _FilterState extends State<Filter> {
             "${config.startDate.month}-${config.startDate.day}-${config.startDate.year}"),
         onPressed: () async {
           DateTime? selectorTime = await showCupertinoModalPopup<DateTime>(
+              useRootNavigator: false,
               barrierDismissible: false,
               context: context,
               builder: (context) {
@@ -139,7 +140,7 @@ class _FilterState extends State<Filter> {
 
     return Material(
       child: SafeArea(
-          top: false,
+          top: true,
           child: SizedBox(
             height: 360,
             child: Wrap(
@@ -147,19 +148,19 @@ class _FilterState extends State<Filter> {
               children: [
                 actions,
                 SizedBox(
-                  width: size.width,
+                  width: 375,
                   child: searchTargetSegment,
                 ),
                 SizedBox(
-                  width: size.width,
+                  width: 375,
                   child: illustsSortSegment,
                 ),
                 SizedBox(
-                  width: size.width,
+                  width: 375,
                   child: startDateResult,
                 ),
                 SizedBox(
-                  width: size.width,
+                  width: 375,
                   child: endDateResult,
                 ),
               ],

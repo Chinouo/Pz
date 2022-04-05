@@ -162,6 +162,12 @@ class _SearchResultViewState extends State<SearchResultView> with IllustResponse
     );
   }
 
+  @override
+  void didUpdateWidget(covariant SearchResultView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    clearIllustsStore();
+  }
+
   Widget buildWaterFallFlow(Response response) {
     storeIllusts(response);
 
@@ -201,6 +207,7 @@ class _SearchResultViewState extends State<SearchResultView> with IllustResponse
 }
 
 /// 搜索插画的结果页  瀑布流
+@Deprecated("BULL SHIT")
 class IllustResultView extends StatefulWidget {
   const IllustResultView({
     Key? key,
