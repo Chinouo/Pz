@@ -3,10 +3,13 @@ import 'package:all_in_one/models/illust/illust.dart';
 import 'package:all_in_one/models/illust/tag.dart';
 import 'package:all_in_one/models/spotlight_article.dart';
 import 'package:all_in_one/models/trend_tag/trend_tag.dart';
+import 'package:all_in_one/models/user_preview/user_preview.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter/widgets.dart';
 
 // List not maintain its length. We do it.
-
+// all can have a same absturct parent class, but i like write one by one.
 mixin IllustResponseHelper<T> {
   final illusts = <Illust>[];
 
@@ -81,7 +84,10 @@ mixin CommentResponseHelper {
     nextUrl = response.data["next_url"];
     for (var item in response.data["comments"]) {
       ++commentsCount;
-      comments.add(Comment.fromJson(item));
+      final temp = Comment.fromJson(item);
+      if (temp.comment!.isNotEmpty) {
+        comments.add(temp);
+      }
     }
   }
 
@@ -108,5 +114,41 @@ mixin AutoFillWordsReponseHelper {
   void clearAutoFillWordsStore() {
     wordsCount = 0;
     words.clear();
+  }
+}
+
+mixin UserPreviewsResponseHelper {
+  String? nextUrl;
+
+  final userPreviews = <UserPreview>[];
+
+  int previewCount = 0;
+
+  void storeUserPreviews(Response response) {
+    nextUrl = response.data["next_url"];
+    for (var item in response.data["user_previews"]) {
+      userPreviews.add(UserPreview.fromJson(item));
+      ++previewCount;
+    }
+  }
+
+  void clearUserPreviewStore() {
+    userPreviews.clear();
+    nextUrl = null;
+    previewCount = 0;
+  }
+}
+
+mixin SafeStateHelper on State {
+  /// if post flag is true, post is to PostFrame.
+  void setStateSafe(void Function() fn, {bool post = false}) {
+    assert(SchedulerBinding.instance != null);
+    if (post) {
+      SchedulerBinding.instance!.addPostFrameCallback((timeStamp) {
+        if (mounted) setState(fn);
+      });
+    } else {
+      if (mounted) setState(fn);
+    }
   }
 }
