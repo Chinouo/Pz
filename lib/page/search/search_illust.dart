@@ -101,8 +101,8 @@ class _TrendTagsViewState extends State<TrendTagsView> {
                 ),
                 childCount: trendTagsStore.length,
               ),
-              gridDelegate:
-                  const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3),
             ),
           )
         ],
@@ -135,7 +135,8 @@ class SearchResultView extends StatefulWidget {
   State<SearchResultView> createState() => _SearchResultViewState();
 }
 
-class _SearchResultViewState extends State<SearchResultView> with IllustResponseHelper {
+class _SearchResultViewState extends State<SearchResultView>
+    with IllustResponseHelper {
   @override
   Widget build(BuildContext context) {
     debugPrint("build Result!");
@@ -177,8 +178,8 @@ class _SearchResultViewState extends State<SearchResultView> with IllustResponse
           physics: const BouncingScrollPhysics(),
           slivers: [
             SliverPadding(
-              padding:
-                  EdgeInsets.symmetric(vertical: widget.paddingTop, horizontal: 18),
+              padding: EdgeInsets.symmetric(
+                  vertical: widget.paddingTop, horizontal: 18),
               sliver: SliverWaterfallFlow(
                   delegate: SliverChildBuilderDelegate((context, index) {
                     return IllustCard(illust: illusts[index]);
@@ -239,7 +240,8 @@ class _IllustResultViewState extends State<IllustResultView> {
   @override
   void initState() {
     super.initState();
-    _resultFuture = ApiClient().getSearchIllust(widget.words, widget.searchConfig);
+    _resultFuture =
+        ApiClient().getSearchIllust(widget.words, widget.searchConfig);
     //_fetchIllustResult();
   }
 
@@ -272,7 +274,8 @@ class _IllustResultViewState extends State<IllustResultView> {
       prevFuture?.ignore();
       nextUrl = null;
       if (widget.words.isNotEmpty) {
-        _resultFuture = ApiClient().getSearchIllust(widget.words, widget.searchConfig);
+        _resultFuture =
+            ApiClient().getSearchIllust(widget.words, widget.searchConfig);
       }
       // SchedulerBinding.instance!.addPostFrameCallback((timeStamp) {
       //   store.clearStore();
@@ -296,9 +299,11 @@ class _IllustResultViewState extends State<IllustResultView> {
           physics: const BouncingScrollPhysics(),
           slivers: [
             SliverPadding(
-              padding: EdgeInsets.only(top: widget.paddingTop, left: 28, right: 28),
+              padding:
+                  EdgeInsets.only(top: widget.paddingTop, left: 28, right: 28),
               sliver: SliverWaterfallFlow(
-                gridDelegate: const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
+                gridDelegate:
+                    const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 20,
                   mainAxisSpacing: 20,
                 ),

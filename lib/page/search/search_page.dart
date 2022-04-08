@@ -233,6 +233,7 @@ class _SearchPageState extends State<SearchPage> {
         if (config != null) {
           filterData = config;
           // Magic
+          // TODO: setChild State After update.
           setState(() {});
         }
       },
@@ -337,7 +338,9 @@ class _SearchPageState extends State<SearchPage> {
                   searchConfig: filterData,
                 );
               case 1:
-                return UserResultView();
+                return UserResultView(
+                  word: textEditingController.text,
+                );
               default:
                 return const Center(child: Text("Internal Error!"));
             }
