@@ -1,8 +1,5 @@
 import 'dart:io';
-import 'package:all_in_one/api/oauth.dart';
-import 'package:all_in_one/constant/hive_boxes.dart';
 import 'package:all_in_one/constant/search_config.dart';
-import 'package:all_in_one/models/models.dart';
 import 'package:dio/adapter.dart';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
@@ -75,8 +72,8 @@ class ApiClient {
         // })
       );
 
-    (httpClient.httpClientAdapter as DefaultHttpClientAdapter)
-        .onHttpClientCreate = (client) {
+    (httpClient.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate =
+        (client) {
       HttpClient httpClient = HttpClient();
       httpClient.badCertificateCallback =
           (X509Certificate cert, String host, int port) {
@@ -87,10 +84,8 @@ class ApiClient {
   }
 
   // 默认获取当日
-  Future<Response> getIllustRanking(
-      {String? mode = "day", String? date}) async {
-    return httpClient
-        .get("/v1/illust/ranking?filter=for_android", queryParameters: {
+  Future<Response> getIllustRanking({String? mode = "day", String? date}) async {
+    return httpClient.get("/v1/illust/ranking?filter=for_android", queryParameters: {
       "mode": mode,
       "date": date,
     });
@@ -116,14 +111,20 @@ class ApiClient {
 
   // 获得推荐的插画
   Future<Response> getRecommend() async {
-    return httpClient.get(
-        "/v1/illust/recommended?filter=for_ios&include_ranking_label=true");
+    return httpClient
+        .get("/v1/illust/recommended?filter=for_ios&include_ranking_label=true");
   }
 
-  // 搜索用户 ？
+  // 搜索用户 返回lists
   Future<Response> getSearchUser(String word) async {
-    return httpClient.get("/v1/search/user?filter=for_android",
-        queryParameters: {"word": word});
+    return httpClient
+        .get("/v1/search/user?filter=for_android", queryParameters: {"word": word});
+  }
+
+  //
+  Future<Response> getSearchUserById(int id) async {
+    return httpClient
+        .get("/v1/user/detail?filter=for_android", queryParameters: {"user_id": id});
   }
 
   // 推荐用户
@@ -132,6 +133,22 @@ class ApiClient {
       "/v1/user/recommended?filter=for_android",
     );
   }
+
+  // Future<Response> getUserFollowing(int user_id, String restrict) {
+  //   return httpClient.get(
+  //     "/v1/user/following?filter=for_android",
+  //     queryParameters: {"restrict": restrict, "user_id": user_id},
+  //   );
+  // }
+
+  // Future<IllustBookmarkTagsResponse> getUserBookmarkTagsIllust(int user_id,
+  //     {String restrict = 'public'}) async {
+  //   final result = await httpClient.get(
+  //     "/v1/user/bookmark-tags/illust",
+  //     queryParameters: notNullMap({"user_id": user_id, "restrict": restrict}),
+  //   );
+  //   return IllustBookmarkTagsResponse.fromJson(result.data);
+  // }
 
   // 搜索下面的推荐标签 就 Gird 那些
   Future<Response> getIllustTrendTags({bool force = false}) async {
@@ -144,6 +161,8 @@ class ApiClient {
   Future<Response> getSearchIllust(String word, SearchConfig config) async {
     String queryStartDate = Util.formaDate(config.startDate);
     String queryEndDate = Util.formaDate(config.endDate);
+
+    debugPrint(config.target);
 
     return httpClient.get(
         "/v1/search/illust?filter=for_android&merge_plain_keyword_results=true",

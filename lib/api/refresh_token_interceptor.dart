@@ -65,7 +65,8 @@ class TokenInterceptor extends Interceptor {
     }
 
     // 处理 可能网不好吧
-    if (err.message.contains("Connection closed before full header was received") &&
+    if (err.message
+            .contains("Connection closed before full header was received") &&
         _retryMaxCount < retryNum) {
       try {
         ++retryNum;
