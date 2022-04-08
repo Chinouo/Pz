@@ -1,4 +1,4 @@
-import 'illust.dart';
+import 'package:all_in_one/models/illust/illust.dart';
 import 'user.dart';
 
 class UserPreview {

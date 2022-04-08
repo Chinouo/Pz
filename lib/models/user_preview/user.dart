@@ -1,4 +1,4 @@
-import 'profile_image_urls.dart';
+import 'package:all_in_one/models/illust/profile_image_urls.dart';
 
 class User {
   int? id;

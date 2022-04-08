@@ -1,3 +1,6 @@
+import 'package:all_in_one/constant/hive_boxes.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+
 import 'user.dart';
 
 class Account {
