@@ -1,16 +1,11 @@
-import 'package:all_in_one/constant/hive_boxes.dart';
+import 'package:all_in_one/constant/constant.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-
 import 'user.dart';
 
-class Account {
-  String? accessToken;
-  int? expiresIn;
-  String? tokenType;
-  String? scope;
-  String? refreshToken;
-  User? user;
+part 'account.g.dart';
 
+@HiveType(typeId: HiveTypeIds.userAccount)
+class Account {
   Account({
     this.accessToken,
     this.expiresIn,
@@ -39,4 +34,22 @@ class Account {
         'refresh_token': refreshToken,
         'user': user?.toJson(),
       };
+
+  @HiveField(0)
+  String? accessToken;
+
+  @HiveField(1)
+  int? expiresIn;
+
+  @HiveField(2)
+  String? tokenType;
+
+  @HiveField(3)
+  String? scope;
+
+  @HiveField(4)
+  String? refreshToken;
+
+  @HiveField(5)
+  User? user;
 }

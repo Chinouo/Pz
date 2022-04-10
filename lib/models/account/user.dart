@@ -1,16 +1,11 @@
+import 'package:all_in_one/constant/constant.dart';
+import 'package:hive/hive.dart';
 import 'profile_image_urls.dart';
 
-class User {
-  ProfileImageUrls? profileImageUrls;
-  String? id;
-  String? name;
-  String? account;
-  String? mailAddress;
-  bool? isPremium;
-  int? xRestrict;
-  bool? isMailAuthorized;
-  bool? requirePolicyAgreement;
+part 'user.g.dart';
 
+@HiveType(typeId: HiveTypeIds.userInfo)
+class User {
   User({
     this.profileImageUrls,
     this.id,
@@ -49,4 +44,31 @@ class User {
         'is_mail_authorized': isMailAuthorized,
         'require_policy_agreement': requirePolicyAgreement,
       };
+
+  @HiveField(0)
+  ProfileImageUrls? profileImageUrls;
+
+  @HiveField(1)
+  String? id;
+
+  @HiveField(2)
+  String? name;
+
+  @HiveField(3)
+  String? account;
+
+  @HiveField(4)
+  String? mailAddress;
+
+  @HiveField(5)
+  bool? isPremium;
+
+  @HiveField(6)
+  int? xRestrict;
+
+  @HiveField(7)
+  bool? isMailAuthorized;
+
+  @HiveField(8)
+  bool? requirePolicyAgreement;
 }
